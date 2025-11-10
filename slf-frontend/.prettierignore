@@ -1,0 +1,11 @@
+node_modules/
+.expo/
+dist/
+build/
+web-build/
+android/
+ios/
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.ttf
