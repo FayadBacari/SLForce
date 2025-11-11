@@ -40,3 +40,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+#others files
+slforce-private-key.jsonslf-backend/slforce-private-key.json
