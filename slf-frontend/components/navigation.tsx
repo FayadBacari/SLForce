@@ -1,7 +1,9 @@
 // import of the different libraries
+import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 import { styles } from './ui/navigation';
 // import JPG images (one per icon)
@@ -18,6 +20,23 @@ const Navigation: React.FC<NavigationProps> = ({ activePage }) => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
+  const [role, setRole] = useState<'eleve' | 'coach'>('eleve');
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const storedRole = await SecureStore.getItemAsync('role');
+        if (isMounted && (storedRole === 'coach' || storedRole === 'eleve')) {
+          setRole(storedRole);
+        }
+      } catch {}
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Simple navigation handler
   const handleNavigate = (page: NavigationProps['activePage']) => {
     if (page === activePage) return;
@@ -32,10 +51,12 @@ const Navigation: React.FC<NavigationProps> = ({ activePage }) => {
     { key: 'settings', label: 'Réglages', image: settings },
   ] as const;
 
+  const filteredNavItems = role === 'coach' ? navItems.filter((i) => i.key !== 'profile') : navItems;
+
   return (
     <View style={[styles.nav, Platform.OS === 'ios' ? { paddingBottom: insets.bottom } : null]}>
       <View style={styles.nav__container}>
-        {navItems.map((item) => (
+        {filteredNavItems.map((item) => (
           <TouchableOpacity
             key={item.key}
             onPress={() => handleNavigate(item.key)}

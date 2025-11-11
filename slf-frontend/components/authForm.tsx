@@ -5,9 +5,12 @@ import { auth } from '../firebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import * as SecureStore from 'expo-secure-store';
 
 // Import CSS styles
 import styles from './ui/authForm';
+
+// Import helper apiFetch
 
 interface AuthFormProps {
   defaultTab?: 'login' | 'register';
@@ -32,18 +35,21 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const token = await userCredential.user.getIdToken();
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Erreur lors de la connexion');
-      }
+      // Save token to SecureStore
+      await SecureStore.setItemAsync('token', token);
       router.push('/(tabs)/chat');
     } catch (error: any) {
-      setErrorMessage(error.message);
+      if (error.code === 'auth/invalid-email') {
+        setErrorMessage("L’adresse e-mail n’est pas valide 🤔");
+      } else if (error.code === 'auth/user-not-found') {
+        setErrorMessage("Aucun compte trouvé avec cette adresse e-mail 🚫");
+      } else if (error.code === 'auth/wrong-password') {
+        setErrorMessage("Le mot de passe est incorrect 🔐");
+      } else if (error.code === 'auth/too-many-requests') {
+        setErrorMessage("Trop de tentatives, réessaie plus tard ⏳");
+      } else {
+        setErrorMessage("Une erreur est survenue. Réessaie plus tard ⚠️");
+      }
     }
   };
 
@@ -56,25 +62,21 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const token = await userCredential.user.getIdToken();
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token,
-          role,
-          firstName,
-          lastName,
-          email,
-        }),
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Erreur lors de l'inscription");
-      }
+      await SecureStore.setItemAsync('token', token);
+      // Persist selected role locally to adapt UI (e.g., hide Athlète tab for coach)
+      await SecureStore.setItemAsync('role', role);
       router.push('/(tabs)/chat');
     } catch (error: any) {
-      setErrorMessage(error.message);
-    }
+  if (error.code === 'auth/email-already-in-use') {
+    setErrorMessage("Cette adresse e-mail est déjà utilisée 🔑");
+  } else if (error.code === 'auth/invalid-email') {
+    setErrorMessage("L’adresse e-mail n’est pas valide 🤔");
+  } else if (error.code === 'auth/weak-password') {
+    setErrorMessage("Ton mot de passe est trop faible. Minimum 6 caractères 💪");
+  } else {
+    setErrorMessage("Une erreur est survenue. Réessaie plus tard ⚠️");
+  }
+}
   };
 
   return (

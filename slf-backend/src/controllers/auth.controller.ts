@@ -16,6 +16,7 @@ export const registerUser = async (req: Request, res: Response) => {
       role,
     });
 
+    console.log(`✅ Nouvel utilisateur inscrit : ${newUser.email}`);
     res.status(201).json({ user: newUser });
   } catch (error: any) {
     res.status(500).json({ message: 'Erreur lors de l’inscription', error: error.message });
@@ -29,6 +30,7 @@ export const loginUser = async (req: Request, res: Response) => {
     const user = await User.findOne({ uid: firebaseUser.uid });
     if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
+    console.log(`✅ Connexion réussie pour : ${user.email}`);
     res.status(200).json({ user });
   } catch (error: any) {
     res.status(500).json({ message: 'Erreur lors de la connexion', error: error.message });
