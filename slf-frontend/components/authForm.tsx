@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { auth } from '../firebaseConfig';
+import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -65,6 +66,18 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
       await SecureStore.setItemAsync('token', token);
       // Persist selected role locally to adapt UI (e.g., hide Athlète tab for coach)
       await SecureStore.setItemAsync('role', role);
+      // Create user profile in Firestore for search/filtering
+      const db = getFirestore();
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email,
+        role,
+        firstName,
+        lastName,
+        displayName: `${firstName} ${lastName}`.trim() || email,
+        createdAt: serverTimestamp(),
+        avatar: role === 'coach' ? '🏋️' : '👤',
+      });
       router.push('/(tabs)/chat');
     } catch (error: any) {
   if (error.code === 'auth/email-already-in-use') {

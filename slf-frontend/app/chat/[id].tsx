@@ -1,16 +1,31 @@
 // import of the different libraries
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ImageBackground, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Icon from '../../components/Icon';
-import { CHATS } from '../../data/chats';
 // Import CSS styles
 import { styles } from '../../styles/chat';
 
-interface Message {
-  id: number;
+// Firebase
+import app, { auth } from '../../firebaseConfig';
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+  getFirestore,
+} from 'firebase/firestore';
+
+const db = getFirestore(app);
+
+interface UIMessage {
+  id: string;
   sender: 'me' | 'them';
   text: string;
   time: string;
@@ -20,46 +35,82 @@ export default function ConversationScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [message, setMessage] = useState<string>('');
+  const [header, setHeader] = useState<{ name: string; avatar: string; status: 'online' | 'offline' }>({
+    name: 'Conversation',
+    avatar: '💬',
+    status: 'offline',
+  });
+  const [messages, setMessages] = useState<UIMessage[]>([]);
 
-  const selectedChat = useMemo(() => {
-    const chatId = parseInt(String(id), 10);
-    return CHATS.find((c) => c.id === chatId) || null;
+  useEffect(() => {
+    if (!id) return;
+    const user = auth.currentUser;
+    // Header subscription (conversation meta)
+    const convRef = doc(db, 'conversations', String(id));
+    const unsubConv = onSnapshot(
+      convRef,
+      (snap) => {
+        const data = (snap.data() || {}) as any;
+        const members: string[] = Array.isArray((data as any).members) ? (data as any).members : [];
+        const otherId = user ? members.find((m) => m !== user.uid) || user.uid : '';
+        const name = (data as any).title || (data as any).name || ((data as any).memberNames && (data as any).memberNames[otherId]) || 'Conversation';
+        setHeader({ name, avatar: (data as any).avatar || '💬', status: 'offline' });
+      },
+      (err) => {
+        console.warn('Firestore conversation header error:', err.code || err.message);
+      }
+    );
+
+    // Messages subscription
+    const msgsRef = collection(convRef, 'messages');
+    const q = query(msgsRef, orderBy('createdAt', 'asc'));
+    const unsubMsgs = onSnapshot(
+      q,
+      (snap) => {
+        const items: UIMessage[] = snap.docs.map((d) => {
+          const data = d.data() as any;
+          const created = data.createdAt?.toDate?.() || new Date();
+          const sender: 'me' | 'them' = user && data.senderId === user.uid ? 'me' : 'them';
+          return {
+            id: d.id,
+            sender,
+            text: String(data.text || ''),
+            time: new Date(created).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+        });
+        setMessages(items);
+      },
+      (err) => {
+        console.warn('Firestore messages listener error:', err.code || err.message);
+      }
+    );
+
+    return () => {
+      unsubConv();
+      unsubMsgs();
+    };
   }, [id]);
 
-  const messages: Message[] = selectedChat
-    ? [
-        { id: 1, sender: 'them', text: 'Salut ! Prêt pour ta session ?', time: '14:25' },
-        { id: 2, sender: 'me', text: 'Ouais je suis chaud ! 🔥', time: '14:26' },
-        {
-          id: 3,
-          sender: 'them',
-          text: "Parfait ! Aujourd'hui on va bosser les muscle-ups. 3 séries de 8 reps !",
-          time: '14:27',
-        },
-        { id: 4, sender: 'me', text: "Let's go ! 💪", time: '14:28' },
-        {
-          id: 5,
-          sender: 'them',
-          text: "N'oublie pas de bien t'échauffer avant. 10min cardio + étirements",
-          time: '14:29',
-        },
-        { id: 6, sender: 'me', text: "C'est noté chef !", time: '14:30' },
-        {
-          id: 7,
-          sender: 'them',
-          text: 'Tu peux me filmer pour que je regarde ta technique ?',
-          time: '14:31',
-        },
-        {
-          id: 8,
-          sender: 'me',
-          text: "Ça marche, je t'envoie ça tout à l'heure 📹",
-          time: '14:32',
-        },
-      ]
-    : [];
+  const handleSend = async () => {
+    const user = auth.currentUser;
+    if (!user || !id) return;
+    const text = message.trim();
+    if (!text) return;
 
-  if (!selectedChat) {
+    const convRef = doc(db, 'conversations', String(id));
+    await addDoc(collection(convRef, 'messages'), {
+      text,
+      senderId: user.uid,
+      createdAt: serverTimestamp(),
+    });
+    await updateDoc(convRef, {
+      lastMessage: text,
+      lastMessageAt: serverTimestamp(),
+    });
+    setMessage('');
+  };
+
+  if (!id) {
     return (
       <SafeAreaView style={styles.app}>
         <View style={{ padding: 16 }}>
@@ -85,16 +136,16 @@ export default function ConversationScreen() {
           </TouchableOpacity>
           <View style={styles.conversationHeader__avatarWrapper}>
             <View style={styles.conversationHeader__avatar}>
-              <Text style={styles.conversationHeader__avatarEmoji}>{selectedChat.avatar}</Text>
+              <Text style={styles.conversationHeader__avatarEmoji}>{header.avatar}</Text>
             </View>
-            {selectedChat.status === 'online' && (
+            {header.status === 'online' && (
               <View style={styles.conversationHeader__statusOnline} />
             )}
           </View>
           <View style={styles.conversationHeader__info}>
-            <Text style={styles.conversationHeader__name}>{selectedChat.name}</Text>
+            <Text style={styles.conversationHeader__name}>{header.name}</Text>
             <Text style={styles.conversationHeader__status}>
-              {selectedChat.status === 'online' ? 'en ligne' : 'hors ligne'}
+              {header.status === 'online' ? 'en ligne' : 'hors ligne'}
             </Text>
           </View>
           <View style={styles.conversationHeader__actions}>
@@ -167,7 +218,7 @@ export default function ConversationScreen() {
           </View>
           {message.trim() ? (
             <TouchableOpacity
-              onPress={() => setMessage('')}
+              onPress={handleSend}
               style={styles.messageInput__sendButton}
               activeOpacity={0.8}
             >
