@@ -16,15 +16,18 @@ interface SearchHeaderProps {
   selectedCategory: string;
   setSelectedCategory: (value: string) => void;
   categories: Category[];
+  title?: string;
+  subtitle?: string;
+  placeholder?: string;
 }
 
 const SearchHeader: React.FC<SearchHeaderProps> = React.memo(
-  ({ searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, categories }) => {
+  ({ searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, categories, title, subtitle, placeholder }) => {
     return (
       <View style={styles['header']}>
         <View style={styles['header__content']}>
-          <Text style={styles['header__title']}>Trouve ton Coach</Text>
-          <Text style={styles['header__subtitle']}>Les meilleurs coachs de France 🇫🇷</Text>
+          <Text style={styles['header__title']}>{title || 'Trouve ton Coach'}</Text>
+          <Text style={styles['header__subtitle']}>{subtitle || 'Les meilleurs coachs de France 🇫🇷'}</Text>
         </View>
 
         {/* --- SEARCH BAR --- */}
@@ -34,7 +37,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = React.memo(
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Rechercher un coach..."
+              placeholder={placeholder || 'Rechercher un coach...'}
               placeholderTextColor="#9CA3AF"
               style={styles['header__search-input']}
               blurOnSubmit={false}
@@ -51,32 +54,34 @@ const SearchHeader: React.FC<SearchHeaderProps> = React.memo(
         </View>
 
         {/* --- CATEGORIES --- */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles['header__categories']}
-          contentContainerStyle={styles['header__categories-content']}
-        >
-          {categories.map((cat) => (
-            <TouchableOpacity
-              key={cat.id}
-              onPress={() => setSelectedCategory(cat.id)}
-              style={[
-                styles['header__category'],
-                selectedCategory === cat.id && styles['header__category--active'],
-              ]}
-            >
-              <Text
+        {categories.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles['header__categories']}
+            contentContainerStyle={styles['header__categories-content']}
+          >
+            {categories.map((cat) => (
+              <TouchableOpacity
+                key={cat.id}
+                onPress={() => setSelectedCategory(cat.id)}
                 style={[
-                  styles['header__category-text'],
-                  selectedCategory === cat.id && styles['header__category-text--active'],
+                  styles['header__category'],
+                  selectedCategory === cat.id && styles['header__category--active'],
                 ]}
               >
-                {cat.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                <Text
+                  style={[
+                    styles['header__category-text'],
+                    selectedCategory === cat.id && styles['header__category-text--active'],
+                  ]}
+                >
+                  {cat.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
 
         {/* --- STATS --- */}
         <View style={styles['header__stats']}>
