@@ -1,17 +1,15 @@
 // Import of the different libraries
-import React from 'react';
 import { Stack, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Import of the different components
 import About from '../../components/About';
-import { SettingCard } from '../../components/SettingCard';
 import { SectionCardSettings } from '../../components/SectionCardSettings';
-
+import { SettingCard } from '../../components/SettingCard';
 // Import CSS styles
 import { styles } from '../../styles/settings';
-
 
 export default function Settings() {
   const router = useRouter();

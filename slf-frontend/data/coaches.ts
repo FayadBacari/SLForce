@@ -9,8 +9,6 @@ export type Coach = {
   students: number;
   price: number;
   experience: string;
-  verified: boolean;
-  premium: boolean;
   description: string;
   skills: string[];
 };
@@ -34,8 +32,6 @@ export const COACHES: Coach[] = [
     students: 45,
     price: 49.99,
     experience: '8 ans',
-    verified: true,
-    premium: true,
     description:
       "Spécialiste en street workout et calisthenics. Je t'aide à maîtriser les figures avancées !",
     skills: ['Street-Lifting'],
@@ -51,8 +47,6 @@ export const COACHES: Coach[] = [
     students: 38,
     price: 39.99,
     experience: '5 ans',
-    verified: true,
-    premium: false,
     description:
       'Coach certifiée en musculation. Programme personnalisé pour atteindre tes objectifs !',
     skills: ['Force', 'Street-Lifting'],
@@ -68,8 +62,6 @@ export const COACHES: Coach[] = [
     students: 62,
     price: 59.99,
     experience: '10 ans',
-    verified: true,
-    premium: true,
     description: 'Champion national de street workout. Transforme ton physique en 3 mois garanti !',
     skills: ['Street-Lifting', 'Endurence'],
   },
@@ -84,8 +76,6 @@ export const COACHES: Coach[] = [
     students: 29,
     price: 34.99,
     experience: '4 ans',
-    verified: true,
-    premium: false,
     description:
       'Spécialisée en cardio et souplesse. Perte de poids et condition physique optimale !',
     skills: ['Endurence'],
@@ -101,8 +91,6 @@ export const COACHES: Coach[] = [
     students: 51,
     price: 44.99,
     experience: '6 ans',
-    verified: true,
-    premium: true,
     description: 'Nutritionniste diplômé. Plans alimentaires sur mesure pour performers !',
     skills: ['Endurence'],
   },

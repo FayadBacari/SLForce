@@ -1,11 +1,10 @@
 // import of the different libraries
 import { Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // import CSS styles
 import styles from '../../styles/payment';
-
 
 export default function Payments() {
   return (

@@ -1,17 +1,13 @@
 // import of the different libraries
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
-import { auth } from '../firebaseConfig';
-import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import { useState } from 'react';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { apiFetch } from '../services/auth';
 // Import CSS styles
 import styles from './ui/authForm';
-
-// Import helper apiFetch
 
 interface AuthFormProps {
   defaultTab?: 'login' | 'register';
@@ -28,30 +24,32 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'eleve' | 'coach'>('eleve');
 
-  // Use rooter for Navigation.
+  // Use router for Navigation.
   const router = useRouter();
 
   const handleLogin = async () => {
     setErrorMessage('');
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const token = await userCredential.user.getIdToken();
-      // Save token to SecureStore
-      await SecureStore.setItemAsync('token', token);
-      router.push('/(tabs)/chat');
-    } catch (error: any) {
-      if (error.code === 'auth/invalid-email') {
-        setErrorMessage("L’adresse e-mail n’est pas valide 🤔");
-      } else if (error.code === 'auth/user-not-found') {
-        setErrorMessage("Aucun compte trouvé avec cette adresse e-mail 🚫");
-      } else if (error.code === 'auth/wrong-password') {
-        setErrorMessage("Le mot de passe est incorrect 🔐");
-      } else if (error.code === 'auth/too-many-requests') {
-        setErrorMessage("Trop de tentatives, réessaie plus tard ⏳");
-      } else {
-        setErrorMessage("Une erreur est survenue. Réessaie plus tard ⚠️");
-      }
+
+    if (!email || !password) {
+      setErrorMessage('Merci de remplir tous les champs obligatoires 🤔');
+      return;
     }
+
+    // Utilise le client API mock (aucun appel réseau réel)
+    const res = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+
+    const { token, user } = res as any;
+    if (token) {
+      await SecureStore.setItemAsync('token', token);
+    }
+    if (user?.role) {
+      await SecureStore.setItemAsync('role', user.role);
+    }
+
+    router.push('/(tabs)/chat');
   };
 
   const handleRegister = async () => {
@@ -60,36 +58,50 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
       setErrorMessage('Les mots de passe ne correspondent pas');
       return;
     }
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const token = await userCredential.user.getIdToken();
-      await SecureStore.setItemAsync('token', token);
-      // Persist selected role locally to adapt UI (e.g., hide Athlète tab for coach)
-      await SecureStore.setItemAsync('role', role);
-      // Create user profile in Firestore for search/filtering
-      const db = getFirestore();
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        uid: userCredential.user.uid,
+
+    if (!email || !password) {
+      setErrorMessage('Merci de remplir correctement tous les champs 🤔');
+      return;
+    }
+
+    // If the user is a coach, redirect to the multi-step coach registration
+    // screen with the base account information instead of creating the account
+    // directly here.
+    if (role === 'coach') {
+      router.push({
+        pathname: '/(tabs)/registerCoach',
+        params: {
+          email,
+          password,
+          firstName,
+          lastName,
+          role,
+        },
+      } as any);
+      return;
+    }
+
+    // Default flow for "eleve": registration via mock API (pas de backend réel)
+    const res = await apiFetch('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
         email,
+        password,
         role,
         firstName,
         lastName,
-        displayName: `${firstName} ${lastName}`.trim() || email,
-        createdAt: serverTimestamp(),
-        avatar: role === 'coach' ? '🏋️' : '👤',
-      });
-      router.push('/(tabs)/chat');
-    } catch (error: any) {
-  if (error.code === 'auth/email-already-in-use') {
-    setErrorMessage("Cette adresse e-mail est déjà utilisée 🔑");
-  } else if (error.code === 'auth/invalid-email') {
-    setErrorMessage("L’adresse e-mail n’est pas valide 🤔");
-  } else if (error.code === 'auth/weak-password') {
-    setErrorMessage("Ton mot de passe est trop faible. Minimum 6 caractères 💪");
-  } else {
-    setErrorMessage("Une erreur est survenue. Réessaie plus tard ⚠️");
-  }
-}
+      }),
+    });
+
+    const { token, user } = res as any;
+    if (token) {
+      await SecureStore.setItemAsync('token', token);
+    }
+    if (user?.role) {
+      await SecureStore.setItemAsync('role', user.role);
+    }
+
+    router.push('/(tabs)/chat');
   };
 
   return (

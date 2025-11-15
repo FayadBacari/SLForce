@@ -1,15 +1,13 @@
 // import of the different libraries
-import { useState } from 'react';
 import { Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // import of the different components
 import Icon from '../../components/Icon';
-
 // import CSS styles
 import { styles } from '../../styles/profile';
-
 
 const Profile = () => {
   const [isEditingRecords, setIsEditingRecords] = useState(false);

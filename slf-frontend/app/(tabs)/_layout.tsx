@@ -1,6 +1,6 @@
 // Import of the different libraries
-import { useEffect, useRef } from 'react';
 import { Slot, usePathname } from 'expo-router';
+import { useEffect, useRef } from 'react';
 import { Animated, Easing, View } from 'react-native';
 
 // Import of the different components
@@ -10,7 +10,6 @@ import { navState } from '../../utils/navigationState';
 // Logical order of pages in the NavBar
 const OFFSET = 400;
 const PAGE_ORDER = ['profile', 'search', 'chat', 'settings'] as const;
-
 
 export default function TabLayout() {
   const pathname = usePathname();

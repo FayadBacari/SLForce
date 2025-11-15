@@ -1,7 +1,6 @@
 // import of the different libraries
-import { ReactNode } from 'react';
 import { useRouter } from 'expo-router';
-import { navState } from '../utils/navigationState';
+import { ReactNode } from 'react';
 import { StyleSheet, Dimensions } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, {
@@ -10,6 +9,8 @@ import Animated, {
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
+
+import { navState } from '../utils/navigationState';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 

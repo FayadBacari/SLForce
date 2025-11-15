@@ -1,16 +1,15 @@
+/* eslint-disable import/order */
 // import of the different libraries
 import { View, ScrollView, Image, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 // import of the different components
 import AuthForm from '../../components/authForm';
-
-// import of the different assets
-const logo = require('../../assets/images/logo.png');
 
 // import CSS styles
 import styles from '../../styles/register';
 
+// import of the different assets
+const logo = require('../../assets/images/logo.png');
 
 export default function Register() {
   return (

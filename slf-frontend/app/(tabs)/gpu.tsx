@@ -1,18 +1,15 @@
 // import of the different libraries
-import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Stack } from 'expo-router';
 import { Image, Linking, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // import of the different components
 import { SwipeBackLayout } from '../../components/SwipeBackLayout';
-
 // import CSS styles
 import styles from '../../styles/gpu';
 
-
 export default function CGU() {
-
   // the mail adress for request
   const handleEmail = () => Linking.openURL('mailto:legal@bearlift.com');
 

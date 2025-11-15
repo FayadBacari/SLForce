@@ -1,13 +1,12 @@
 import { Router } from 'express';
 import { registerUser, loginUser } from '../controllers/auth.controller';
-import { verifyFirebaseToken } from '../middleware/auth';
 
 const router = Router();
 
 // POST /api/auth/register
-router.post('/register', verifyFirebaseToken, registerUser);
+router.post('/register', registerUser);
 
 // POST /api/auth/login
-router.post('/login', verifyFirebaseToken, loginUser);
+router.post('/login', loginUser);
 
 export default router;

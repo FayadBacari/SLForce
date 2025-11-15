@@ -1,14 +1,12 @@
 // import of the different libraries
 import { useState } from 'react';
-import { launchImageLibrary } from 'react-native-image-picker';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 // import of the different components
 import { SwipeBackLayout } from '../../components/SwipeBackLayout';
-
 // import CSS styles
 import styles from '../../styles/settingProfil';
-
 
 interface UserProfile {
   name: string;

@@ -1,9 +1,9 @@
 // import of the different libraries
-import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import { useEffect, useState } from 'react';
+import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { styles } from './ui/navigation';
 // import JPG images (one per icon)
@@ -51,7 +51,8 @@ const Navigation: React.FC<NavigationProps> = ({ activePage }) => {
     { key: 'settings', label: 'Réglages', image: settings },
   ] as const;
 
-  const filteredNavItems = role === 'coach' ? navItems.filter((i) => i.key !== 'profile') : navItems;
+  const filteredNavItems =
+    role === 'coach' ? navItems.filter((i) => i.key !== 'profile') : navItems;
 
   return (
     <View style={[styles.nav, Platform.OS === 'ios' ? { paddingBottom: insets.bottom } : null]}>

@@ -7,6 +7,7 @@ import express, { Request, Response, NextFunction } from 'express';
 
 // import of the different routes
 import authRoutes from './routes/auth.route';
+import coachRoutes from './routes/coach.route';
 
 // environnement variables
 dotenv.config();
@@ -53,5 +54,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/coaches', coachRoutes);
 
 export default app;

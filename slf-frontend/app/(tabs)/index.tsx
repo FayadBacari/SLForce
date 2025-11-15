@@ -1,35 +1,19 @@
+/* eslint-disable import/order */
 // import of the different libraries
 import { View, ScrollView, Image, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect, useState } from 'react';
-
 // import of the different components
 import AuthForm from '../../components/authForm';
-
-// import of the different assets
-const logo = require('../../assets/images/logo.png');
 
 // import CSS styles
 import styles from '../../styles/home';
 
-// import helper apiFetch
-import { apiFetch } from '../../services/auth';
+// import of the different assets
+const logo = require('../../assets/images/logo.png');
+
+const HEALTH_MESSAGE = 'Mode maquette – aucune API connectée';
 
 export default function Home() {
-  const [healthStatus, setHealthStatus] = useState<string>('');
-
-  useEffect(() => {
-    async function checkHealth() {
-      try {
-        const response = await apiFetch('/health');
-        setHealthStatus(response.status || 'No status');
-      } catch (error) {
-        setHealthStatus('Error fetching health status');
-      }
-    }
-    checkHealth();
-  }, []);
-
   return (
     <SafeAreaView style={styles.home__safeArea}>
       <ScrollView
@@ -49,8 +33,8 @@ export default function Home() {
         {/* FORM */}
         <AuthForm />
 
-        {/* API health status */}
-        <Text style={styles.home__subtitle}>{healthStatus}</Text>
+        {/* API health status (mode maquette) */}
+        <Text style={styles.home__subtitle}>{HEALTH_MESSAGE}</Text>
       </ScrollView>
     </SafeAreaView>
   );

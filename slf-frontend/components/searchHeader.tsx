@@ -22,12 +22,23 @@ interface SearchHeaderProps {
 }
 
 const SearchHeader: React.FC<SearchHeaderProps> = React.memo(
-  ({ searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, categories, title, subtitle, placeholder }) => {
+  ({
+    searchQuery,
+    setSearchQuery,
+    selectedCategory,
+    setSelectedCategory,
+    categories,
+    title,
+    subtitle,
+    placeholder,
+  }) => {
     return (
       <View style={styles['header']}>
         <View style={styles['header__content']}>
           <Text style={styles['header__title']}>{title || 'Trouve ton Coach'}</Text>
-          <Text style={styles['header__subtitle']}>{subtitle || 'Les meilleurs coachs de France 🇫🇷'}</Text>
+          <Text style={styles['header__subtitle']}>
+            {subtitle || 'Les meilleurs coachs de France 🇫🇷'}
+          </Text>
         </View>
 
         {/* --- SEARCH BAR --- */}

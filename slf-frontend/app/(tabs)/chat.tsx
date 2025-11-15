@@ -1,29 +1,13 @@
 // import of the different libraries
-import { useEffect, useMemo, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useMemo, useState } from 'react';
 import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // import of the different components
 import Icon from '../../components/Icon';
-
 // Import CSS styles
 import { styles } from '../../styles/chat';
-
-// Firebase
-import app, { auth } from '../../firebaseConfig';
-import {
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  where,
-  Timestamp,
-  DocumentData,
-  getFirestore,
-} from 'firebase/firestore';
-
-const db = getFirestore(app);
 
 interface ConversationListItem {
   id: string;
@@ -35,57 +19,46 @@ interface ConversationListItem {
   status: 'online' | 'offline';
 }
 
+// Données de conversations mockées pour la maquette (aucun accès réseau)
+const MOCK_CONVERSATIONS: ConversationListItem[] = [
+  {
+    id: '1',
+    name: 'Ashura Workout',
+    avatar: '💪',
+    lastMsg: 'On commence la prochaine séance lundi ?',
+    time: '14:32',
+    unread: 2,
+    status: 'online',
+  },
+  {
+    id: '2',
+    name: 'Coach Marina',
+    avatar: '🏋️‍♀️',
+    lastMsg: 'Je t’ai envoyé le nouveau programme 🔥',
+    time: '09:10',
+    unread: 0,
+    status: 'offline',
+  },
+  {
+    id: '3',
+    name: 'Team Street-Lift',
+    avatar: '🥇',
+    lastMsg: 'Objectif : nouveau PR ce mois-ci 💥',
+    time: 'Hier',
+    unread: 5,
+    status: 'online',
+  },
+];
+
 const Chat: React.FC = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [conversations, setConversations] = useState<ConversationListItem[]>([]);
-
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (!user) return; // L'utilisateur doit être connecté
-
-    const q = query(
-      collection(db, 'conversations'),
-      where('members', 'array-contains', user.uid),
-      orderBy('lastMessageAt', 'desc')
-    );
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const items: ConversationListItem[] = snap.docs.map((doc) => {
-          const data = doc.data() as DocumentData;
-          const lastAt: Timestamp | null = (data.lastMessageAt as Timestamp) || null;
-          const members: string[] = Array.isArray(data.members) ? data.members : [];
-          const otherId = members.find((m) => m !== user.uid) || user.uid;
-          const displayName: string =
-            data.title || data.name || (data.memberNames && data.memberNames[otherId]) || 'Conversation';
-
-          return {
-            id: doc.id,
-            name: displayName,
-            avatar: data.avatar || '💬',
-            lastMsg: typeof data.lastMessage === 'string' ? data.lastMessage : '',
-            time: lastAt ? new Date(lastAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-            unread: typeof data.unread === 'number' ? data.unread : 0,
-            status: 'offline',
-          };
-        });
-        setConversations(items);
-      },
-      (err) => {
-        console.warn('Firestore conversations listener error:', err.code || err.message);
-      }
-    );
-
-    return () => unsub();
-  }, []);
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return conversations;
-    return conversations.filter((c) => c.name.toLowerCase().includes(q));
-  }, [conversations, searchQuery]);
+    if (!q) return MOCK_CONVERSATIONS;
+    return MOCK_CONVERSATIONS.filter((c) => c.name.toLowerCase().includes(q));
+  }, [searchQuery]);
 
   return (
     <SafeAreaView style={styles.app}>
@@ -110,7 +83,7 @@ const Chat: React.FC = () => {
           {filtered.map((chat) => (
             <TouchableOpacity
               key={chat.id}
-              onPress={() => router.push({ pathname: "/chat/[id]", params: { id: chat.id } })}
+              onPress={() => router.push({ pathname: '/chat/[id]', params: { id: chat.id } })}
               style={styles.chatItem}
               activeOpacity={0.7}
             >
