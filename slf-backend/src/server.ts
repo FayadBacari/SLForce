@@ -1,6 +1,6 @@
 // Import different library
-import http, { Server } from "http";
 import app from "./index";
+import http, { Server } from "http";
 
 // the different types
 type Port = number | string | false;

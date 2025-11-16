@@ -6,8 +6,7 @@ import mongoose from 'mongoose';
 import express, { Request, Response, NextFunction } from 'express';
 
 // import of the different routes
-import authRoutes from './routes/auth.route';
-import coachRoutes from './routes/coach.route';
+import authRoutes from './routes/auth.routes';
 
 // environnement variables
 dotenv.config();
@@ -40,11 +39,11 @@ mongoose
   });
 
 
-
 // Health Endpoint
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
 });
+
 // Error handling
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
@@ -53,7 +52,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/coaches', coachRoutes);
+app.use('/auth', authRoutes);
+
 
 export default app;

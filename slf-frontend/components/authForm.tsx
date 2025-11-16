@@ -35,21 +35,24 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
       return;
     }
 
-    // Utilise le client API mock (aucun appel réseau réel)
-    const res = await apiFetch('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
 
-    const { token, user } = res as any;
-    if (token) {
-      await SecureStore.setItemAsync('token', token);
-    }
-    if (user?.role) {
-      await SecureStore.setItemAsync('role', user.role);
-    }
+      const { token, user } = res as any;
+      if (token) {
+        await SecureStore.setItemAsync('token', token);
+      }
+      if (user?.role) {
+        await SecureStore.setItemAsync('role', user.role);
+      }
 
-    router.push('/(tabs)/chat');
+      router.push('/(tabs)/chat');
+    } catch (error: any) {
+      setErrorMessage(error.message || "Une erreur est survenue lors de la connexion");
+    }
   };
 
   const handleRegister = async () => {
@@ -81,27 +84,30 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
       return;
     }
 
-    // Default flow for "eleve": registration via mock API (pas de backend réel)
-    const res = await apiFetch('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({
-        email,
-        password,
-        role,
-        firstName,
-        lastName,
-      }),
-    });
+    try {
+      const res = await apiFetch('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password,
+          role,
+          firstName,
+          lastName,
+        }),
+      });
 
-    const { token, user } = res as any;
-    if (token) {
-      await SecureStore.setItemAsync('token', token);
-    }
-    if (user?.role) {
-      await SecureStore.setItemAsync('role', user.role);
-    }
+      const { token, user } = res as any;
+      if (token) {
+        await SecureStore.setItemAsync('token', token);
+      }
+      if (user?.role) {
+        await SecureStore.setItemAsync('role', user.role);
+      }
 
-    router.push('/(tabs)/chat');
+      router.push('/(tabs)/chat');
+    } catch (error: any) {
+      setErrorMessage(error.message || "Une erreur est survenue lors de l'inscription");
+    }
   };
 
   return (

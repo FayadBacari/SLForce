@@ -50,9 +50,10 @@ export const styles = StyleSheet.create({
   stepTitle: {
     color: '#1F2937',
     fontWeight: '900',
-    fontSize: 32,
+    fontSize: 28,
     textAlign: 'center',
     marginBottom: 12,
+    paddingHorizontal: 10,
   },
 
   stepSubtitle: {
@@ -81,6 +82,56 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+  },
+
+  inputReadOnly: {
+    backgroundColor: '#F9FAFB',
+    borderColor: '#E5E7EB',
+    marginBottom: 24,
+  },
+
+  badgesRow: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+    justifyContent: 'center',
+  },
+
+  badgeButton: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  badgeButtonSelected: {
+    backgroundColor: '#3B82F6',
+    borderColor: '#3B82F6',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+
+  badgeButtonText: {
+    color: '#374151',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+
+  badgeButtonTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '900',
   },
 
   priceInputWrapper: {
@@ -167,85 +218,61 @@ export const styles = StyleSheet.create({
     elevation: 3,
   },
 
-  skillsInputWrapper: {
+  badgesGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
     width: '100%',
-    marginBottom: 20,
+    justifyContent: 'center',
+    marginBottom: 24,
   },
 
-  skillInput: {
-    flex: 1,
+  disciplineBadge: {
     backgroundColor: '#FFFFFF',
-    color: '#1F2937',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 16,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#3B82F6',
-    fontWeight: '700',
-    fontSize: 16,
+    borderColor: '#E5E7EB',
+    minWidth: '45%',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  disciplineBadgeSelected: {
+    backgroundColor: '#3B82F6',
+    borderColor: '#3B82F6',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 5,
   },
 
-  addSkillButton: {
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  addSkillButtonDisabled: {
-    backgroundColor: '#9CA3AF',
-    opacity: 0.5,
-  },
-
-  skillsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    width: '100%',
-    justifyContent: 'center',
-  },
-
-  skillChip: {
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  skillChipText: {
-    color: '#FFFFFF',
+  disciplineBadgeText: {
+    color: '#374151',
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 16,
   },
 
-  emptySkills: {
-    color: '#9CA3AF',
+  disciplineBadgeTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+  },
+
+  selectedInfo: {
+    marginTop: 8,
+  },
+
+  selectedInfoText: {
+    color: '#6B7280',
     fontWeight: '600',
     fontSize: 14,
     textAlign: 'center',
-    marginTop: 20,
   },
 
   navigation: {

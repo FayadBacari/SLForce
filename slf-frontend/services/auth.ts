@@ -1,48 +1,36 @@
-// Client API mock – aucune requête réseau réelle
-// Cette fonction renvoie des réponses simulées pour les écrans d'authentification
-// et d'inscription coach/élève.
+// Client API réel pour communiquer avec le backend Express
+// Utilise fetch vers l'API Node (login, register, etc.)
 
-type MockUser = {
-  email: string;
-  role: 'eleve' | 'coach';
-  firstName?: string;
-  lastName?: string;
-};
-
-const MOCK_TOKEN = 'mock-token';
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5132';
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  // Petit délai pour simuler un appel réseau
-  await new Promise((resolve) => setTimeout(resolve, 400));
+  const url = `${BASE_URL}${endpoint}`;
 
-  // Récupération éventuelle du corps JSON
-  let body: any = {};
-  if (options.body && typeof options.body === 'string') {
-    try {
-      body = JSON.parse(options.body);
-    } catch {
-      body = {};
-    }
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {}),
+  };
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  let data: any = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
   }
 
-  if (endpoint === '/auth/login') {
-    const user: MockUser = {
-      email: body.email || 'user@example.com',
-      role: 'eleve',
-    };
-    return { token: MOCK_TOKEN, user };
+  if (!response.ok) {
+    const message =
+      (data && (data.message || data.error)) || `Erreur API (${response.status})`;
+    const error: any = new Error(message);
+    error.status = response.status;
+    error.data = data;
+    throw error;
   }
 
-  if (endpoint === '/auth/register') {
-    const user: MockUser = {
-      email: body.email || 'user@example.com',
-      role: (body.role as 'eleve' | 'coach') || 'eleve',
-      firstName: body.firstName,
-      lastName: body.lastName,
-    };
-    return { token: MOCK_TOKEN, user };
-  }
-
-  // Par défaut on renvoie un objet vide pour tout autre endpoint
-  return {};
+  return data;
 }

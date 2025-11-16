@@ -1,4 +1,3 @@
-/* eslint-disable import/order */
 // import of the different libraries
 import { View, ScrollView, Image, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

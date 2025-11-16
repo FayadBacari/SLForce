@@ -1,15 +1,17 @@
 // import of the different libraries
+import { useState } from 'react';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text, TextInput, TouchableOpacity, View, Animated } from 'react-native';
 
-// Import Icon
+// import components
 import Icon from '../../components/Icon';
+
+// import services & CSS Styles
 import { apiFetch } from '../../services/auth';
-// Import CSS Styles
 import { styles } from '../../styles/registerCoach';
+
 
 const CoachRegistration = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -26,20 +28,22 @@ const CoachRegistration = () => {
     skills: [] as string[],
   });
 
-  const [tempSkill, setTempSkill] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const totalSteps = 7;
 
-  const router = useRouter();
-  const params = useLocalSearchParams();
+  const specialityOptions = ['Calisthenics', 'Autre'];
+  const disciplineOptions = ['Street-Lifting', 'Set and Rep', 'Freestyle', 'Endurance'];
 
-  const email = String(params.email || '');
-  const password = String(params.password || '');
-  const firstName = String(params.firstName || '');
-  const lastName = String(params.lastName || '');
-  const role = (params.role as string) || 'coach';
+  const router = useRouter();
+  const params = useLocalSearchParams<{
+    email?: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
+    role?: string;
+  }>();
 
   const handleNext = () => {
     if (currentStep < totalSteps) {
@@ -79,51 +83,60 @@ const CoachRegistration = () => {
     }
   };
 
-  const addSkill = () => {
-    if (tempSkill.trim() && coachData.skills.length < 5) {
-      setCoachData({
-        ...coachData,
-        skills: [...coachData.skills, tempSkill.trim()],
-      });
-      setTempSkill('');
-    }
+  const selectSpeciality = (speciality: string) => {
+    setCoachData({ ...coachData, speciality });
   };
 
-  const removeSkill = (index: number) => {
-    setCoachData({
-      ...coachData,
-      skills: coachData.skills.filter((_, i) => i !== index),
-    });
+  const toggleDiscipline = (discipline: string) => {
+    if (coachData.skills.includes(discipline)) {
+      setCoachData({
+        ...coachData,
+        skills: coachData.skills.filter(s => s !== discipline),
+      });
+    } else if (coachData.skills.length < 2) {
+      setCoachData({
+        ...coachData,
+        skills: [...coachData.skills, discipline],
+      });
+    }
   };
 
   const handleSubmit = async () => {
-    if (!email || !password) {
-      setErrorMessage('Les informations de base du compte sont manquantes.');
+    setErrorMessage('');
+
+    const email = params.email as string | undefined;
+    const password = params.password as string | undefined;
+    const firstName = params.firstName as string | undefined;
+    const lastName = params.lastName as string | undefined;
+    const role = (params.role as 'eleve' | 'coach' | undefined) || 'coach';
+
+    if (!email || !password || !firstName || !lastName) {
+      setErrorMessage("Informations du compte manquantes. Merci de recommencer l'inscription.");
       return;
     }
 
-    setSubmitting(true);
-    setErrorMessage('');
-
+    setLoading(true);
     try {
+      const payload = {
+        email,
+        password,
+        role,
+        firstName,
+        lastName,
+        coachProfile: {
+          avatar: coachData.avatar,
+          speciality: coachData.speciality,
+          location: coachData.location,
+          price: Number(coachData.price),
+          experience: Number(coachData.experience),
+          description: coachData.description,
+          skills: coachData.skills,
+        },
+      };
+
       const res = await apiFetch('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({
-          email,
-          password,
-          role,
-          firstName,
-          lastName,
-          coachProfile: {
-            avatar: coachData.avatar,
-            speciality: coachData.speciality,
-            location: coachData.location,
-            price: parseFloat(coachData.price),
-            experience: parseInt(coachData.experience, 10),
-            description: coachData.description,
-            skills: coachData.skills,
-          },
-        }),
+        body: JSON.stringify(payload),
       });
 
       const { token, user } = res as any;
@@ -136,9 +149,9 @@ const CoachRegistration = () => {
 
       router.push('/(tabs)/chat');
     } catch (error: any) {
-      setErrorMessage(`Une erreur est survenue: ${error.message || 'Erreur inconnue'} ⚠️`);
+      setErrorMessage(error.message || "Une erreur est survenue lors de l'inscription coach");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -150,12 +163,12 @@ const CoachRegistration = () => {
             <View style={styles.iconWrapper}>
               <Icon emoji="👤" size={80} />
             </View>
-            <Text style={styles.stepTitle}>Quel est pseudo ?</Text>
+            <Text style={styles.stepTitle}>Quel est ton nom ?</Text>
             <Text style={styles.stepSubtitle}>Commence par nous dire comment tu t'appelles</Text>
             <TextInput
               value={coachData.name}
               onChangeText={(text) => setCoachData({ ...coachData, name: text })}
-              placeholder="Ex: Ashura Workout"
+              placeholder="Ex: Coach Karim"
               placeholderTextColor="#9CA3AF"
               style={styles.input}
               autoFocus
@@ -171,14 +184,34 @@ const CoachRegistration = () => {
             </View>
             <Text style={styles.stepTitle}>Ta spécialité ?</Text>
             <Text style={styles.stepSubtitle}>Dans quel domaine tu excelles ?</Text>
+            
             <TextInput
               value={coachData.speciality}
-              onChangeText={(text) => setCoachData({ ...coachData, speciality: text })}
-              placeholder="Ex: Calisthenics Expert"
+              editable={false}
+              placeholder="Sélectionne une option ci-dessous"
               placeholderTextColor="#9CA3AF"
-              style={styles.input}
-              autoFocus
+              style={[styles.input, styles.inputReadOnly]}
             />
+
+            <View style={styles.badgesRow}>
+              {specialityOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  onPress={() => selectSpeciality(option)}
+                  style={[
+                    styles.badgeButton,
+                    coachData.speciality === option && styles.badgeButtonSelected,
+                  ]}
+                >
+                  <Text style={[
+                    styles.badgeButtonText,
+                    coachData.speciality === option && styles.badgeButtonTextSelected,
+                  ]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </Animated.View>
         );
 
@@ -189,9 +222,7 @@ const CoachRegistration = () => {
               <Icon emoji="📍" size={80} />
             </View>
             <Text style={styles.stepTitle}>Où es-tu basé ?</Text>
-            <Text style={styles.stepSubtitle}>
-              Indique ta ville pour que les athlètes te trouvent
-            </Text>
+            <Text style={styles.stepSubtitle}>Indique ta ville pour que les athlètes te trouvent</Text>
             <TextInput
               value={coachData.location}
               onChangeText={(text) => setCoachData({ ...coachData, location: text })}
@@ -277,45 +308,36 @@ const CoachRegistration = () => {
               <Icon emoji="💪" size={80} />
             </View>
             <Text style={styles.stepTitle}>Quelle discipline du street workout enseignes-tu ?</Text>
-            <Text style={styles.stepSubtitle}>Ajoute jusqu'a deux discipline</Text>
-
-            <View style={styles.skillsInputWrapper}>
-              <TextInput
-                value={tempSkill}
-                onChangeText={setTempSkill}
-                placeholder="Ex: Street-Lifting, Endurance, Freetyle ?"
-                placeholderTextColor="#9CA3AF"
-                style={styles.skillInput}
-                maxLength={20}
-                autoFocus
-              />
-              <TouchableOpacity
-                onPress={addSkill}
-                style={[
-                  styles.addSkillButton,
-                  (!tempSkill.trim() || coachData.skills.length >= 5) &&
-                    styles.addSkillButtonDisabled,
-                ]}
-                disabled={!tempSkill.trim() || coachData.skills.length >= 5}
-              >
-                <Icon emoji="➕" size={24} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.skillsList}>
-              {coachData.skills.map((skill, index) => (
-                <View key={index} style={styles.skillChip}>
-                  <Text style={styles.skillChipText}>{skill}</Text>
-                  <TouchableOpacity onPress={() => removeSkill(index)}>
-                    <Icon emoji="✖️" size={16} />
+            <Text style={styles.stepSubtitle}>Choisis 2 disciplines maximum</Text>
+            
+            <View style={styles.badgesGrid}>
+              {disciplineOptions.map((discipline) => {
+                const isSelected = coachData.skills.includes(discipline);
+                return (
+                  <TouchableOpacity
+                    key={discipline}
+                    onPress={() => toggleDiscipline(discipline)}
+                    style={[
+                      styles.disciplineBadge,
+                      isSelected && styles.disciplineBadgeSelected,
+                    ]}
+                  >
+                    <Text style={[
+                      styles.disciplineBadgeText,
+                      isSelected && styles.disciplineBadgeTextSelected,
+                    ]}>
+                      {discipline}
+                    </Text>
                   </TouchableOpacity>
-                </View>
-              ))}
+                );
+              })}
             </View>
 
-            {coachData.skills.length === 0 && (
-              <Text style={styles.emptySkills}>Ajoute au moins une compétence</Text>
-            )}
+            <View style={styles.selectedInfo}>
+              <Text style={styles.selectedInfoText}>
+                {coachData.skills.length} / 2 sélectionnées
+              </Text>
+            </View>
           </Animated.View>
         );
 
@@ -335,7 +357,7 @@ const CoachRegistration = () => {
       case 4:
         return coachData.price.trim().length > 0 && parseFloat(coachData.price) > 0;
       case 5:
-        return coachData.experience.trim().length > 0 && parseInt(coachData.experience, 10) > 0;
+        return coachData.experience.trim().length > 0 && parseInt(coachData.experience) > 0;
       case 6:
         return coachData.description.trim().length > 20;
       case 7:
@@ -348,7 +370,7 @@ const CoachRegistration = () => {
   return (
     <SafeAreaView style={styles.app}>
       <Stack.Screen options={{ headerShown: false }} />
-
+      
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
@@ -360,7 +382,9 @@ const CoachRegistration = () => {
       </View>
 
       {/* Content */}
-      <View style={styles.content}>{renderStep()}</View>
+      <View style={styles.content}>
+        {renderStep()}
+      </View>
 
       {/* Navigation Buttons */}
       <View style={styles.navigation}>
@@ -373,25 +397,19 @@ const CoachRegistration = () => {
 
         <TouchableOpacity
           onPress={currentStep === totalSteps ? handleSubmit : handleNext}
-          disabled={!canProceed() || submitting}
+          disabled={!canProceed()}
           style={[
             styles.nextButton,
             currentStep === 1 && styles.nextButtonFull,
-            (!canProceed() || submitting) && styles.nextButtonDisabled,
+            !canProceed() && styles.nextButtonDisabled,
           ]}
         >
           <Text style={styles.nextButtonText}>
-            {currentStep === totalSteps ? (submitting ? 'En cours...' : 'Terminer 🎉') : 'Suivant'}
+            {currentStep === totalSteps ? 'Terminer 🎉' : 'Suivant'}
           </Text>
           {currentStep < totalSteps && <Icon emoji="➡️" size={20} />}
         </TouchableOpacity>
       </View>
-
-      {errorMessage ? (
-        <View style={{ paddingHorizontal: 24, paddingTop: 12 }}>
-          <Text style={{ color: 'red' }}>{errorMessage}</Text>
-        </View>
-      ) : null}
     </SafeAreaView>
   );
 };
