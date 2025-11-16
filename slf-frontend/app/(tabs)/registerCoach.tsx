@@ -30,6 +30,8 @@ const CoachRegistration = () => {
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isCheckingName, setIsCheckingName] = useState(false);
+  const [isNameAvailable, setIsNameAvailable] = useState<boolean | null>(null);
 
   const totalSteps = 7;
 
@@ -45,7 +47,15 @@ const CoachRegistration = () => {
     role?: string;
   }>();
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Étape 1 : on vérifie le pseudo avant de passer à la suite
+    if (currentStep === 1) {
+      const ok = await checkCoachNameAvailability(coachData.name);
+      if (!ok) {
+        return; // pseudo déjà pris ou erreur => on reste sur l'étape 1
+      }
+    }
+
     if (currentStep < totalSteps) {
       Animated.sequence([
         Animated.timing(fadeAnim, {
@@ -87,6 +97,35 @@ const CoachRegistration = () => {
     setCoachData({ ...coachData, speciality });
   };
 
+  const checkCoachNameAvailability = async (name: string): Promise<boolean> => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setErrorMessage("Le pseudo ne peut pas être vide.");
+      setIsNameAvailable(null);
+      return false;
+    }
+
+    setIsCheckingName(true);
+    setErrorMessage('');
+    try {
+      const query = encodeURIComponent(trimmed);
+      const res = await apiFetch(`/auth/coach-name?name=${query}`);
+      const { available } = res as any;
+      const isAvailable = !!available;
+      setIsNameAvailable(isAvailable);
+      if (!isAvailable) {
+        setErrorMessage("Ce pseudo est déjà pris, merci d'en choisir un autre.");
+      }
+      return isAvailable;
+    } catch (error: any) {
+      setIsNameAvailable(null);
+      setErrorMessage(error.message || 'Impossible de vérifier le pseudo pour le moment.');
+      return false;
+    } finally {
+      setIsCheckingName(false);
+    }
+  };
+
   const toggleDiscipline = (discipline: string) => {
     if (coachData.skills.includes(discipline)) {
       setCoachData({
@@ -124,6 +163,7 @@ const CoachRegistration = () => {
         firstName,
         lastName,
         coachProfile: {
+          name: coachData.name,
           avatar: coachData.avatar,
           speciality: coachData.speciality,
           location: coachData.location,
@@ -163,16 +203,30 @@ const CoachRegistration = () => {
             <View style={styles.iconWrapper}>
               <Icon emoji="👤" size={80} />
             </View>
-            <Text style={styles.stepTitle}>Quel est ton nom ?</Text>
+            <Text style={styles.stepTitle}>Quel est ton pseudo ?</Text>
             <Text style={styles.stepSubtitle}>Commence par nous dire comment tu t'appelles</Text>
             <TextInput
               value={coachData.name}
-              onChangeText={(text) => setCoachData({ ...coachData, name: text })}
+              onChangeText={(text) => {
+                setCoachData({ ...coachData, name: text });
+                setIsNameAvailable(null);
+                setErrorMessage('');
+              }}
+              onBlur={() => {
+                if (coachData.name.trim().length > 0) {
+                  checkCoachNameAvailability(coachData.name);
+                }
+              }}
               placeholder="Ex: Coach Karim"
               placeholderTextColor="#9CA3AF"
               style={styles.input}
               autoFocus
             />
+            {errorMessage ? (
+              <Text style={{ color: '#EF4444', marginTop: 8, textAlign: 'center' }}>
+                {errorMessage}
+              </Text>
+            ) : null}
           </Animated.View>
         );
 
@@ -349,7 +403,9 @@ const CoachRegistration = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return coachData.name.trim().length > 0;
+        // On laisse le bouton cliquable dès qu'il y a un texte, 
+        // et c'est handleNext qui décide si on peut avancer ou non
+        return coachData.name.trim().length > 0 && !isCheckingName;
       case 2:
         return coachData.speciality.trim().length > 0;
       case 3:

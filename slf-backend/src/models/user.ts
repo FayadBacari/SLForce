@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface CoachProfile {
+  name: string; // pseudo unique du coach
   avatar: string;
   speciality: string;
   location: string;
@@ -20,6 +21,7 @@ export interface IUser extends Document {
 }
 
 const CoachProfileSchema = new Schema<CoachProfile>({
+  name: { type: String, required: true, unique: true },
   avatar: { type: String },
   speciality: { type: String },
   location: { type: String },
