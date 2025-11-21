@@ -7,41 +7,27 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // import of the different components
 import SearchHeader from '../../components/searchHeader';
-import { COACHES, CATEGORIES, type Coach } from '../../data/coaches';
+import { CATEGORIES, type Coach } from '../../data/coaches';
+// import { apiFetch } from '../../services/auth'; // removed apiFetch import
 // import CSS styles
 import styles from '../../styles/search';
 
 interface StudentProfile {
   uid: string;
-  displayName?: string;
-  email?: string;
+  firstName: string;
+  lastName: string;
   avatar?: string;
   role?: 'eleve' | 'coach';
 }
 
-// Données mockées pour les élèves (aucun Firestore)
-const MOCK_STUDENTS: StudentProfile[] = [
-  {
-    uid: 's1',
-    displayName: 'Lina – Débutante',
-    email: 'lina@example.com',
-    avatar: '👩‍🎓',
-    role: 'eleve',
-  },
-  {
-    uid: 's2',
-    displayName: 'Yanis – Intermédiaire',
-    email: 'yanis@example.com',
-    avatar: '🧑‍🎓',
-    role: 'eleve',
-  },
-];
+const ALLOWED_CATEGORIES = ['Street-Lifting', 'Endurance', 'Freestyle'];
 
 const Search: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [role, setRole] = useState<'eleve' | 'coach'>('eleve');
-  const [students] = useState<StudentProfile[]>(MOCK_STUDENTS);
+  const [students, setStudents] = useState<StudentProfile[]>([]);
+  const [dbCoachs, setDbCoachs] = useState<any[]>([]);
 
   // Load role from SecureStore
   useEffect(() => {
@@ -57,24 +43,107 @@ const Search: React.FC = () => {
     };
   }, []);
 
-  const coaches: Coach[] = COACHES;
+  useEffect(() => {
+    const loadCoachs = async () => {
+      try {
+        const res = await fetch('http://localhost:5132/coachs', { method: 'GET', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' } });
+        if (!res.ok) {
+          const text = await res.text();
+          console.log('Erreur récupération coachs :', text);
+          return;
+        }
+        const data = await res.json();
+        setDbCoachs(data.coachs || []);
+      } catch (err) {
+        console.log('Erreur récupération coachs :', err);
+      }
+    };
+    loadCoachs();
+  }, []);
+
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        const res = await fetch('http://localhost:5132/students', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          console.log('Erreur fetch élèves:', text);
+          return;
+        }
+
+        const data = await res.json();
+        const dbStudents: StudentProfile[] = data.students.map((s: any) => ({
+          uid: s._id,
+          firstName: s.firstName,
+          lastName: s.lastName,
+          avatar: s.athleteProfile?.avatar || '👤',
+          role: s.role,
+        }));
+
+        setStudents(dbStudents);
+      } catch (err) {
+        console.log('Erreur récupération élèves :', err);
+      }
+    };
+
+    loadStudents();
+  }, []);
+
+  const coaches: Coach[] = dbCoachs.map((c: any, index: number) => ({
+    id: index + 1,
+    name: c.coachProfile?.name || `${c.firstName} ${c.lastName}`,
+    avatar: c.coachProfile?.avatar || '🏋️',
+    speciality: c.coachProfile?.speciality || 'Coach sportif',
+    location: c.coachProfile?.location || 'Inconnu',
+    rating: c.coachProfile?.rating || 5,
+    reviews: c.coachProfile?.reviews || 0,
+    students: c.students || 0,
+    price: c.coachProfile?.price || 0,
+    experience: c.coachProfile?.experience || 0,
+    description: c.coachProfile?.description || '',
+    skills: c.coachProfile?.skills || [],
+  }));
 
   const filteredCoaches = useMemo(() => {
-    return coaches.filter(
-      (coach) =>
-        coach.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        coach.speciality.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        coach.location.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [coaches, searchQuery]);
+    if (selectedCategory === 'all') {
+      return coaches.filter(coach => {
+        const q = searchQuery.toLowerCase();
+        return (
+          coach.name.toLowerCase().includes(q) ||
+          coach.speciality.toLowerCase().includes(q) ||
+          coach.location.toLowerCase().includes(q)
+        );
+      });
+    }
+
+    return coaches.filter(coach => {
+      const q = searchQuery.toLowerCase();
+      const category = selectedCategory;
+
+      const matchesSearch =
+        coach.name.toLowerCase().includes(q) ||
+        coach.speciality.toLowerCase().includes(q) ||
+        coach.location.toLowerCase().includes(q);
+
+      const hasCategoryBadge =
+        coach.skills.some(skill => skill === category) ||
+        coach.speciality === category;
+
+      return matchesSearch && hasCategoryBadge;
+    });
+  }, [coaches, searchQuery, selectedCategory]);
 
   const filteredStudents = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return students;
     return students.filter(
       (s) =>
-        (s.displayName || '').toLowerCase().includes(q) ||
-        (s.email || '').toLowerCase().includes(q),
+        (s.firstName || '').toLowerCase().includes(q) ||
+        (s.lastName || '').toLowerCase().includes(q),
     );
   }, [students, searchQuery]);
 
@@ -140,10 +209,10 @@ const Search: React.FC = () => {
         <View style={styles['search__coach-info']}>
           <View style={styles['search__coach-name-wrapper']}>
             <Text style={styles['search__coach-name']}>
-              {item.displayName || item.email || 'Élève'}
+              {item.firstName || item.lastName || 'Élève'}
+              {item.lastName || item.lastName || 'Élève'}
             </Text>
           </View>
-          <Text style={styles['search__coach-speciality']}>{item.email}</Text>
         </View>
       </View>
 

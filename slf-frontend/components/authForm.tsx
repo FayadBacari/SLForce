@@ -48,10 +48,18 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
       if (user?.role) {
         await SecureStore.setItemAsync('role', user.role);
       }
+      if (user?._id) {
+        await SecureStore.setItemAsync('userId', user._id);
+      }
 
-      router.push('/(tabs)/chat');
+      // Rediriger selon le rôle
+      if (user?.role === 'coach') {
+        router.push('/(tabs)/profileCoach');
+      } else {
+        router.push('/(tabs)/profile');
+      }
     } catch (error: any) {
-      setErrorMessage(error.message || "Une erreur est survenue lors de la connexion");
+      setErrorMessage(error.message || 'Une erreur est survenue lors de la connexion');
     }
   };
 
@@ -103,8 +111,11 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
       if (user?.role) {
         await SecureStore.setItemAsync('role', user.role);
       }
+      if (user?._id) {
+        await SecureStore.setItemAsync('userId', user._id);
+      }
 
-      router.push('/(tabs)/chat');
+      router.push('/(tabs)/profile');
     } catch (error: any) {
       setErrorMessage(error.message || "Une erreur est survenue lors de l'inscription");
     }

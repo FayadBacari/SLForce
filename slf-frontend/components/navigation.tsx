@@ -13,7 +13,7 @@ import chat from '../assets/images/message.png';
 import settings from '../assets/images/reglage.png';
 
 type NavigationProps = {
-  activePage: 'profile' | 'search' | 'chat' | 'settings';
+  activePage: 'profile' | 'profileCoach' | 'search' | 'chat' | 'settings';
 };
 
 const Navigation: React.FC<NavigationProps> = ({ activePage }) => {
@@ -43,16 +43,21 @@ const Navigation: React.FC<NavigationProps> = ({ activePage }) => {
     router.push(`/(tabs)/${page}` as const);
   };
 
-  // Button configuration
-  const navItems = [
-    { key: 'profile', label: 'Athlète', image: athlete },
-    { key: 'search', label: 'Recherche', image: search },
-    { key: 'chat', label: 'Messages', image: chat },
-    { key: 'settings', label: 'Réglages', image: settings },
-  ] as const;
+  // Button configuration - dynamic based on role
+  const navItems: {
+    key: 'profile' | 'profileCoach' | 'search' | 'chat' | 'settings';
+    label: string;
+    image: any;
+  }[] = [
+    role === 'coach'
+      ? { key: 'profileCoach' as const, label: 'Coach', image: athlete }
+      : { key: 'profile' as const, label: 'Athlète', image: athlete },
+    { key: 'search' as const, label: 'Recherche', image: search },
+    { key: 'chat' as const, label: 'Messages', image: chat },
+    { key: 'settings' as const, label: 'Réglages', image: settings },
+  ];
 
-  const filteredNavItems =
-    role === 'coach' ? navItems.filter((i) => i.key !== 'profile') : navItems;
+  const filteredNavItems = navItems;
 
   return (
     <View style={[styles.nav, Platform.OS === 'ios' ? { paddingBottom: insets.bottom } : null]}>

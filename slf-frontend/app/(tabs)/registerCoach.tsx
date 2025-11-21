@@ -1,9 +1,9 @@
 // import of the different libraries
-import { useState } from 'react';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View, Animated } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // import components
 import Icon from '../../components/Icon';
@@ -11,7 +11,6 @@ import Icon from '../../components/Icon';
 // import services & CSS Styles
 import { apiFetch } from '../../services/auth';
 import { styles } from '../../styles/registerCoach';
-
 
 const CoachRegistration = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -28,10 +27,10 @@ const CoachRegistration = () => {
     skills: [] as string[],
   });
 
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isCheckingName, setIsCheckingName] = useState(false);
-  const [isNameAvailable, setIsNameAvailable] = useState<boolean | null>(null);
+  const [, setIsNameAvailable] = useState<boolean | null>(null);
 
   const totalSteps = 7;
 
@@ -100,7 +99,7 @@ const CoachRegistration = () => {
   const checkCoachNameAvailability = async (name: string): Promise<boolean> => {
     const trimmed = name.trim();
     if (!trimmed) {
-      setErrorMessage("Le pseudo ne peut pas être vide.");
+      setErrorMessage('Le pseudo ne peut pas être vide.');
       setIsNameAvailable(null);
       return false;
     }
@@ -130,7 +129,7 @@ const CoachRegistration = () => {
     if (coachData.skills.includes(discipline)) {
       setCoachData({
         ...coachData,
-        skills: coachData.skills.filter(s => s !== discipline),
+        skills: coachData.skills.filter((s) => s !== discipline),
       });
     } else if (coachData.skills.length < 2) {
       setCoachData({
@@ -186,8 +185,11 @@ const CoachRegistration = () => {
       if (user?.role) {
         await SecureStore.setItemAsync('role', user.role);
       }
+      if (user?._id) {
+        await SecureStore.setItemAsync('userId', user._id);
+      }
 
-      router.push('/(tabs)/chat');
+      router.push('/(tabs)/profileCoach');
     } catch (error: any) {
       setErrorMessage(error.message || "Une erreur est survenue lors de l'inscription coach");
     } finally {
@@ -238,7 +240,7 @@ const CoachRegistration = () => {
             </View>
             <Text style={styles.stepTitle}>Ta spécialité ?</Text>
             <Text style={styles.stepSubtitle}>Dans quel domaine tu excelles ?</Text>
-            
+
             <TextInput
               value={coachData.speciality}
               editable={false}
@@ -257,10 +259,12 @@ const CoachRegistration = () => {
                     coachData.speciality === option && styles.badgeButtonSelected,
                   ]}
                 >
-                  <Text style={[
-                    styles.badgeButtonText,
-                    coachData.speciality === option && styles.badgeButtonTextSelected,
-                  ]}>
+                  <Text
+                    style={[
+                      styles.badgeButtonText,
+                      coachData.speciality === option && styles.badgeButtonTextSelected,
+                    ]}
+                  >
                     {option}
                   </Text>
                 </TouchableOpacity>
@@ -276,7 +280,9 @@ const CoachRegistration = () => {
               <Icon emoji="📍" size={80} />
             </View>
             <Text style={styles.stepTitle}>Où es-tu basé ?</Text>
-            <Text style={styles.stepSubtitle}>Indique ta ville pour que les athlètes te trouvent</Text>
+            <Text style={styles.stepSubtitle}>
+              Indique ta ville pour que les athlètes te trouvent
+            </Text>
             <TextInput
               value={coachData.location}
               onChangeText={(text) => setCoachData({ ...coachData, location: text })}
@@ -363,7 +369,7 @@ const CoachRegistration = () => {
             </View>
             <Text style={styles.stepTitle}>Quelle discipline du street workout enseignes-tu ?</Text>
             <Text style={styles.stepSubtitle}>Choisis 2 disciplines maximum</Text>
-            
+
             <View style={styles.badgesGrid}>
               {disciplineOptions.map((discipline) => {
                 const isSelected = coachData.skills.includes(discipline);
@@ -371,15 +377,14 @@ const CoachRegistration = () => {
                   <TouchableOpacity
                     key={discipline}
                     onPress={() => toggleDiscipline(discipline)}
-                    style={[
-                      styles.disciplineBadge,
-                      isSelected && styles.disciplineBadgeSelected,
-                    ]}
+                    style={[styles.disciplineBadge, isSelected && styles.disciplineBadgeSelected]}
                   >
-                    <Text style={[
-                      styles.disciplineBadgeText,
-                      isSelected && styles.disciplineBadgeTextSelected,
-                    ]}>
+                    <Text
+                      style={[
+                        styles.disciplineBadgeText,
+                        isSelected && styles.disciplineBadgeTextSelected,
+                      ]}
+                    >
                       {discipline}
                     </Text>
                   </TouchableOpacity>
@@ -403,7 +408,7 @@ const CoachRegistration = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        // On laisse le bouton cliquable dès qu'il y a un texte, 
+        // On laisse le bouton cliquable dès qu'il y a un texte,
         // et c'est handleNext qui décide si on peut avancer ou non
         return coachData.name.trim().length > 0 && !isCheckingName;
       case 2:
@@ -426,7 +431,7 @@ const CoachRegistration = () => {
   return (
     <SafeAreaView style={styles.app}>
       <Stack.Screen options={{ headerShown: false }} />
-      
+
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
@@ -438,9 +443,7 @@ const CoachRegistration = () => {
       </View>
 
       {/* Content */}
-      <View style={styles.content}>
-        {renderStep()}
-      </View>
+      <View style={styles.content}>{renderStep()}</View>
 
       {/* Navigation Buttons */}
       <View style={styles.navigation}>

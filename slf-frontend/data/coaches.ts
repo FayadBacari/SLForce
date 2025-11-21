@@ -15,9 +15,9 @@ export type Coach = {
 
 export const CATEGORIES: { id: string; label: string }[] = [
   { id: 'all', label: 'Tous' },
-  { id: 'musculation', label: 'Street-Lifting' },
-  { id: 'cardio', label: 'Endurance' },
-  { id: 'nutrition', label: 'Freestyle' },
+  { id: 'Street-Lifting', label: 'Street-Lifting' },
+  { id: 'Endurance', label: 'Endurance' },
+  { id: 'Freestyle', label: 'Freestyle' },
 ];
 
 export const COACHES: Coach[] = [
@@ -49,7 +49,7 @@ export const COACHES: Coach[] = [
     experience: '5 ans',
     description:
       'Coach certifiée en musculation. Programme personnalisé pour atteindre tes objectifs !',
-    skills: ['Force', 'Street-Lifting'],
+    skills: ['Street-Lifting'],
   },
   {
     id: 3,
@@ -63,7 +63,7 @@ export const COACHES: Coach[] = [
     price: 59.99,
     experience: '10 ans',
     description: 'Champion national de street workout. Transforme ton physique en 3 mois garanti !',
-    skills: ['Street-Lifting', 'Endurence'],
+    skills: ['Street-Lifting', 'Endurance'],
   },
   {
     id: 4,
@@ -78,7 +78,7 @@ export const COACHES: Coach[] = [
     experience: '4 ans',
     description:
       'Spécialisée en cardio et souplesse. Perte de poids et condition physique optimale !',
-    skills: ['Endurence'],
+    skills: ['Endurance'],
   },
   {
     id: 5,
@@ -92,6 +92,6 @@ export const COACHES: Coach[] = [
     price: 44.99,
     experience: '6 ans',
     description: 'Nutritionniste diplômé. Plans alimentaires sur mesure pour performers !',
-    skills: ['Endurence'],
+    skills: ['Freestyle'],
   },
 ];

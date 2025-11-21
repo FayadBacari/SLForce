@@ -7,6 +7,10 @@ import express, { Request, Response, NextFunction } from 'express';
 
 // import of the different routes
 import authRoutes from './routes/auth.routes';
+import studentRoutes from './routes/getAthleteSearch.routes';
+import coachRoutes from './routes/getCoach.routes';
+import athleteRoutes from './routes/updateAthleteProfil.routes';
+
 
 // environnement variables
 dotenv.config();
@@ -53,6 +57,10 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/coachs', coachRoutes);
+app.use('/users', athleteRoutes);
+app.use('/students', studentRoutes);
+
 
 
 export default app;

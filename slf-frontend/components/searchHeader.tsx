@@ -72,25 +72,37 @@ const SearchHeader: React.FC<SearchHeaderProps> = React.memo(
             style={styles['header__categories']}
             contentContainerStyle={styles['header__categories-content']}
           >
-            {categories.map((cat) => (
-              <TouchableOpacity
-                key={cat.id}
-                onPress={() => setSelectedCategory(cat.id)}
-                style={[
-                  styles['header__category'],
-                  selectedCategory === cat.id && styles['header__category--active'],
-                ]}
-              >
-                <Text
+            {categories.map((cat) => {
+              const isActive = selectedCategory === cat.id;
+              const resetCategories = ['Street-Lifting', 'Endurance', 'Freestyle'];
+              return (
+                <TouchableOpacity
+                  key={cat.id}
+                  onPress={() => {
+                    if (isActive && resetCategories.includes(cat.label)) {
+                      setSelectedCategory('all');
+                    } else {
+                      setSelectedCategory(cat.id);
+                    }
+                  }}
                   style={[
-                    styles['header__category-text'],
-                    selectedCategory === cat.id && styles['header__category-text--active'],
+                    styles['header__category'],
+                    isActive && styles['header__category--active'],
+                    isActive && { backgroundColor: '#4F46E5' }, // clearer background for active badge
                   ]}
                 >
-                  {cat.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles['header__category-text'],
+                      isActive && styles['header__category-text--active'],
+                      isActive && { color: '#FFFFFF', fontWeight: 'bold' }, // clearer text style for active badge
+                    ]}
+                  >
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         )}
 

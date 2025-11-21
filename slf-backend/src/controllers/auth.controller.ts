@@ -100,3 +100,25 @@ export const checkCoachName = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 };
+
+// Récupère le profil de l'utilisateur connecté
+export const getProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Non authentifié' });
+    }
+
+    const user = await User.findById(userId).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};

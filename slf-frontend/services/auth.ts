@@ -24,8 +24,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   }
 
   if (!response.ok) {
-    const message =
-      (data && (data.message || data.error)) || `Erreur API (${response.status})`;
+    const message = (data && (data.message || data.error)) || `Erreur API (${response.status})`;
     const error: any = new Error(message);
     error.status = response.status;
     error.data = data;

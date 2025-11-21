@@ -1,11 +1,14 @@
 // import of the different libraries
-import { Stack } from 'expo-router';
 import { useState } from 'react';
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect } from 'react';
+import { Stack } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // import of the different components
 import Icon from '../../components/Icon';
+
 // import CSS styles
 import { styles } from '../../styles/profile';
 
@@ -29,12 +32,102 @@ const Profile = () => {
     height: '175',
   });
 
+  useEffect(() => {
+    const loadAthlete = async () => {
+      try {
+        const userId = await SecureStore.getItemAsync('userId');
+        if (!userId) {
+          console.log('loadAthlete → aucun userId trouvé, on garde les valeurs par défaut.');
+          return;
+        }
+
+        // ⚠️ Change ici avec ton port correct si nécessaire
+        const BASE = 'http://localhost:5132';
+        const url = `${BASE}/users/${userId}/athlete`;
+
+        console.log('⏳ Fetch athlete profile →', url);
+
+        const resp = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log('📡 Status:', resp.status);
+
+        if (!resp.ok) {
+          const text = await resp.text();
+          console.log('❌ Réponse non OK:', text);
+          return;
+        }
+
+        const json = await resp.json();
+        console.log('📥 JSON reçu:', json);
+
+        if (!json.athleteProfile) {
+          console.log('ℹ️ Aucun athleteProfile dans la DB → on garde les valeurs par défaut.');
+          return;
+        }
+
+        const a = json.athleteProfile;
+
+        // Met à jour uniquement si les champs existent dans la DB, sinon garde les valeurs par défaut
+        setProfile(prev => ({
+          name: a.name ?? prev.name,
+          photo: a.avatar ?? prev.photo,
+          gender: a.gender ?? prev.gender,
+          weightCategory: a.weightCategory ?? prev.weightCategory,
+          weight: a.weight !== undefined ? String(a.weight) : prev.weight,
+          height: a.height !== undefined ? String(a.height) : prev.height,
+        }));
+
+        setRecords(prev => ({
+          muscleUp: a.records?.muscleUp !== undefined ? String(a.records.muscleUp) : prev.muscleUp,
+          traction: a.records?.traction !== undefined ? String(a.records.traction) : prev.traction,
+          dips: a.records?.dips !== undefined ? String(a.records.dips) : prev.dips,
+          squat: a.records?.squat !== undefined ? String(a.records.squat) : prev.squat,
+        }));
+      } catch (err) {
+        console.log('❌ Erreur chargement athlète :', err);
+      }
+    };
+
+    loadAthlete();
+  }, []);
+
+  // Helper to allow only valid numeric input (allows one dot, no letters)
+  const filterNumericInput = (value: string, allowDecimal = true) => {
+    // Remove all except digits and optionally one dot
+    let filtered = value.replace(allowDecimal ? /[^0-9.]/g : /[^0-9]/g, '');
+    // Only one dot allowed, remove extras
+    if (allowDecimal) {
+      const parts = filtered.split('.');
+      if (parts.length > 2) {
+        filtered = parts[0] + '.' + parts.slice(1).join('');
+      }
+    }
+    return filtered;
+  };
+
   const handleRecordChange = (field: keyof typeof records, value: string) => {
-    setRecords({ ...records, [field]: value });
+    // Only allow valid numeric input (including decimals)
+    const filtered = filterNumericInput(value, true);
+    // Don't update state if input is not valid numeric (ignore letters)
+    if (filtered === '' && value !== '') return;
+    setRecords({ ...records, [field]: filtered });
   };
 
   const handleProfileChange = (field: keyof typeof profile, value: any) => {
-    setProfile({ ...profile, [field]: value });
+    // For numeric fields, filter input
+    if (field === 'weight' || field === 'height') {
+      const filtered = filterNumericInput(value, false);
+      if (filtered === '' && value !== '') return;
+      setProfile({ ...profile, [field]: filtered });
+    } else {
+      setProfile({ ...profile, [field]: value });
+    }
   };
 
   const calculateTotal = () => {
@@ -213,7 +306,28 @@ const Profile = () => {
 
             {isEditingProfile && (
               <TouchableOpacity
-                onPress={() => setIsEditingProfile(false)}
+                onPress={async () => {
+                  const userId = await SecureStore.getItemAsync('userId');
+                  if (!userId) return;
+
+                  await fetch(`http://localhost:5132/users/${userId}/athlete`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      ...profile,
+                      weight: Number(profile.weight),
+                      height: Number(profile.height),
+                      records: {
+                        muscleUp: Number(records.muscleUp),
+                        traction: Number(records.traction),
+                        dips: Number(records.dips),
+                        squat: Number(records.squat),
+                      },
+                    }),
+                  });
+
+                  setIsEditingProfile(false);
+                }}
                 style={[styles.button, styles['button--full'], styles['button--save']]}
               >
                 <Icon emoji="💾" size={20} />
@@ -337,7 +451,28 @@ const Profile = () => {
 
             {isEditingRecords && (
               <TouchableOpacity
-                onPress={() => setIsEditingRecords(false)}
+                onPress={async () => {
+                  const userId = await SecureStore.getItemAsync('userId');
+                  if (!userId) return;
+
+                  await fetch(`http://localhost:5132/users/${userId}/athlete`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      ...profile,
+                      weight: Number(profile.weight),
+                      height: Number(profile.height),
+                      records: {
+                        muscleUp: Number(records.muscleUp),
+                        traction: Number(records.traction),
+                        dips: Number(records.dips),
+                        squat: Number(records.squat),
+                      },
+                    }),
+                  });
+
+                  setIsEditingRecords(false);
+                }}
                 style={[styles.button, styles['button--full'], styles['button--saveRecords']]}
               >
                 <Icon emoji="💾" size={20} />
