@@ -1,18 +1,17 @@
-// import of the different libraries
-import { useState } from 'react';
+// import of different libraries
 import { Stack } from 'expo-router';
+import { useState, useEffect } from 'react';
+import { apiFetch } from '../../services/auth';
+import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-import * as SecureStore from 'expo-secure-store';
-import { useEffect } from 'react';
-import { apiFetch } from '../../services/auth';
-
-// import of the different components
+// import component 
 import Icon from '../../components/Icon';
 
-// import CSS styles
+// import css 
 import { styles } from '../../styles/profileCoach';
+import { CoachProfileData, CoachDetails } from '../../types';
 
 const updateCoachProfile = async (userId: string, data: any) => {
   try {
@@ -23,25 +22,24 @@ const updateCoachProfile = async (userId: string, data: any) => {
     });
     return res;
   } catch (err) {
-    console.log('Erreur update coach:', err);
   }
 };
 
 const CoachProfile = () => {
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<CoachProfileData>({
     name: '',
     title: '',
-    photo: null as string | null,
+    photo: null,
     location: '',
     athletesCount: '',
     experience: '',
   });
 
-  const [details, setDetails] = useState({
+  const [details, setDetails] = useState<CoachDetails>({
     description: '',
     specialty: '',
     price: '',
-    disciplines: [] as string[],
+    disciplines: [],
   });
 
   useEffect(() => {
@@ -74,7 +72,6 @@ const CoachProfile = () => {
           disciplines: Array.isArray(p.skills) ? p.skills : [],
         });
       } catch (err) {
-        console.log('Erreur profil coach:', err);
       }
     };
 
@@ -88,10 +85,10 @@ const CoachProfile = () => {
 
   const handleProfileChange = (field: keyof typeof profile, value: any) => {
     if (field === 'experience' || field === 'athletesCount') {
-      // autoriser uniquement les chiffres
+      // regex for use only number 
       value = value.replace(/[^0-9]/g, '');
     } else if (field === 'name' || field === 'title' || field === 'location') {
-      // autoriser uniquement lettres, espaces et tirets
+      // regex for use only letters, spaces and dashes
       value = value.replace(/[^a-zA-ZÀ-ÿ \-]/g, '');
     }
     setProfile({ ...profile, [field]: value });
@@ -99,10 +96,10 @@ const CoachProfile = () => {
 
   const handleDetailsChange = (field: keyof typeof details, value: string | string[]) => {
     if (field === 'price' && typeof value === 'string') {
-      // autoriser uniquement les chiffres
+       // regex for use only number 
       value = value.replace(/[^0-9]/g, '');
     } else if ((field === 'specialty' || field === 'description') && typeof value === 'string') {
-      // autoriser lettres, chiffres, ponctuation de base et espaces
+      // regex for use only letters, spaces and dashes
       value = value.replace(/[^a-zA-Z0-9À-ÿ ,.'\-]/g, '');
     }
     setDetails({ ...details, [field]: value });
@@ -160,7 +157,6 @@ const CoachProfile = () => {
     <SafeAreaView style={styles.app}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.app__container}>
-        {/* Header */}
         <View style={styles.header}>
           <View style={styles.header__content}>
             <View>
@@ -175,7 +171,6 @@ const CoachProfile = () => {
           contentContainerStyle={styles.main__content}
           showsVerticalScrollIndicator={false}
         >
-          {/* Coach Profile Card */}
           <View style={styles.card}>
             <View style={styles.card__header}>
               <View style={styles.card__titleWrapper}>
@@ -234,7 +229,6 @@ const CoachProfile = () => {
               )}
             </View>
 
-            {/* Location */}
             <View style={styles.field}>
               <View style={styles.field__labelWrapper}>
                 <Icon emoji="📍" size={16} />
@@ -251,7 +245,6 @@ const CoachProfile = () => {
               />
             </View>
 
-            {/* Stats Row */}
             <View style={styles.statsRow}>
               <View style={styles.statsRow__item}>
                 <View style={styles.field__labelWrapper}>
@@ -299,7 +292,6 @@ const CoachProfile = () => {
             )}
           </View>
 
-          {/* Coach Details Card */}
           <View style={styles.card}>
             <View style={styles.card__header}>
               <View style={styles.card__titleWrapper}>
@@ -318,7 +310,6 @@ const CoachProfile = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Description */}
             <View style={styles.field}>
               <View style={styles.field__labelWrapper}>
                 <Icon emoji="📝" size={16} />
@@ -337,7 +328,6 @@ const CoachProfile = () => {
               />
             </View>
 
-            {/* Specialty */}
             <View style={styles.field}>
               <View style={styles.field__labelWrapper}>
                 <Icon emoji="⭐" size={16} />
@@ -356,7 +346,6 @@ const CoachProfile = () => {
               </View>
             </View>
 
-            {/* Disciplines */}
             <View style={styles.field}>
               <View style={styles.field__labelWrapper}>
                 <Icon emoji="💪" size={16} />
@@ -393,7 +382,6 @@ const CoachProfile = () => {
               )}
             </View>
 
-            {/* Price */}
             <View style={styles.priceSection}>
               <Text style={styles.priceSection__label}>A partir de</Text>
               <View style={styles.priceSection__wrapper}>
@@ -425,7 +413,6 @@ const CoachProfile = () => {
             )}
           </View>
 
-          {/* Contact Button */}
           <TouchableOpacity style={styles.contactButton}>
             <Icon emoji="📧" size={24} />
             <Text style={styles.contactButton__text}>Contacter</Text>

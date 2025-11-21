@@ -1,32 +1,32 @@
-// import of the different libraries
-import { useState } from 'react';
-import { useEffect } from 'react';
+// import of different libraries
 import { Stack } from 'expo-router';
+import { useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// import of the different components
+// import component 
 import Icon from '../../components/Icon';
 
-// import CSS styles
+// import css 
 import { styles } from '../../styles/profile';
+import { AthleteRecords, AthleteProfile } from '../../types';
 
 const Profile = () => {
   const [isEditingRecords, setIsEditingRecords] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
-  const [records, setRecords] = useState({
+  const [records, setRecords] = useState<AthleteRecords>({
     muscleUp: '16.25',
     traction: '50',
     dips: '70',
     squat: '120',
   });
 
-  const [profile, setProfile] = useState({
-    name: 'Youssef',
-    photo: null as string | null,
-    gender: 'male' as 'male' | 'female',
+  const [profile, setProfile] = useState<AthleteProfile>({
+    name: 'Cassim',
+    photo: null,
+    gender: 'male',
     weightCategory: '-80',
     weight: '78',
     height: '175',
@@ -37,15 +37,11 @@ const Profile = () => {
       try {
         const userId = await SecureStore.getItemAsync('userId');
         if (!userId) {
-          console.log('loadAthlete → aucun userId trouvé, on garde les valeurs par défaut.');
           return;
         }
 
-        // ⚠️ Change ici avec ton port correct si nécessaire
         const BASE = 'http://localhost:5132';
         const url = `${BASE}/users/${userId}/athlete`;
-
-        console.log('⏳ Fetch athlete profile →', url);
 
         const resp = await fetch(url, {
           method: 'GET',
@@ -55,25 +51,18 @@ const Profile = () => {
           },
         });
 
-        console.log('📡 Status:', resp.status);
-
         if (!resp.ok) {
-          const text = await resp.text();
-          console.log('❌ Réponse non OK:', text);
           return;
         }
 
         const json = await resp.json();
-        console.log('📥 JSON reçu:', json);
 
         if (!json.athleteProfile) {
-          console.log('ℹ️ Aucun athleteProfile dans la DB → on garde les valeurs par défaut.');
           return;
         }
 
         const a = json.athleteProfile;
 
-        // Met à jour uniquement si les champs existent dans la DB, sinon garde les valeurs par défaut
         setProfile(prev => ({
           name: a.name ?? prev.name,
           photo: a.avatar ?? prev.photo,
@@ -90,18 +79,14 @@ const Profile = () => {
           squat: a.records?.squat !== undefined ? String(a.records.squat) : prev.squat,
         }));
       } catch (err) {
-        console.log('❌ Erreur chargement athlète :', err);
       }
     };
 
     loadAthlete();
   }, []);
 
-  // Helper to allow only valid numeric input (allows one dot, no letters)
   const filterNumericInput = (value: string, allowDecimal = true) => {
-    // Remove all except digits and optionally one dot
     let filtered = value.replace(allowDecimal ? /[^0-9.]/g : /[^0-9]/g, '');
-    // Only one dot allowed, remove extras
     if (allowDecimal) {
       const parts = filtered.split('.');
       if (parts.length > 2) {
@@ -112,15 +97,12 @@ const Profile = () => {
   };
 
   const handleRecordChange = (field: keyof typeof records, value: string) => {
-    // Only allow valid numeric input (including decimals)
     const filtered = filterNumericInput(value, true);
-    // Don't update state if input is not valid numeric (ignore letters)
     if (filtered === '' && value !== '') return;
     setRecords({ ...records, [field]: filtered });
   };
 
   const handleProfileChange = (field: keyof typeof profile, value: any) => {
-    // For numeric fields, filter input
     if (field === 'weight' || field === 'height') {
       const filtered = filterNumericInput(value, false);
       if (filtered === '' && value !== '') return;
@@ -147,7 +129,6 @@ const Profile = () => {
     <SafeAreaView style={styles.app}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.app__container}>
-        {/* Header */}
         <View style={styles.header}>
           <View style={styles.header__content}>
             <View>
@@ -162,7 +143,6 @@ const Profile = () => {
           contentContainerStyle={styles.main__content}
           showsVerticalScrollIndicator={false}
         >
-          {/* Profile Card */}
           <View style={styles.card}>
             <View style={styles.card__header}>
               <View style={styles.card__titleWrapper}>
@@ -236,10 +216,9 @@ const Profile = () => {
                   <Text style={styles.genderSelector__emoji}>👩</Text>
                   <Text style={styles.genderSelector__text}>FEMME</Text>
                 </TouchableOpacity>
-              </View>
             </View>
+          </View>
 
-            {/* Weight Category */}
             <View style={styles.field}>
               <Text style={styles.field__label}>CATÉGORIE DE POIDS</Text>
               <View style={styles.categoryGrid}>
@@ -267,7 +246,6 @@ const Profile = () => {
               </View>
             </View>
 
-            {/* Weight and Height */}
             <View style={styles.statsRow}>
               <View style={styles.statsRow__item}>
                 <View style={styles.field__labelWrapper}>
@@ -336,7 +314,6 @@ const Profile = () => {
             )}
           </View>
 
-          {/* Records Card */}
           <View style={styles.card}>
             <View style={styles.card__header}>
               <View style={styles.card__titleWrapper}>
@@ -481,7 +458,6 @@ const Profile = () => {
             )}
           </View>
 
-          {/* Total Score */}
           <View style={styles.totalCard}>
             <View style={styles.totalCard__content}>
               <View>

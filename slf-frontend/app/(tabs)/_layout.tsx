@@ -1,13 +1,12 @@
-// Import of the different libraries
-import { Slot, usePathname } from 'expo-router';
+// import of different libraries
 import { useEffect, useRef } from 'react';
+import { Slot, usePathname } from 'expo-router';
 import { Animated, Easing, View } from 'react-native';
-
-// Import of the different components
-import Navigation from '../../components/navigation';
 import { navState } from '../../utils/navigationState';
 
-// Logical order of pages in the NavBar
+// import component 
+import Navigation from '../../components/navigation';
+
 const OFFSET = 400;
 const PAGE_ORDER = ['profile', 'search', 'chat', 'settings'] as const;
 
@@ -17,21 +16,33 @@ export default function TabLayout() {
   const previousPage = useRef<string | null>(null);
   const currentPage = PAGE_ORDER.find((p) => pathname.includes(p)) || 'profile';
   const isHomePage = pathname === '/' || pathname.includes('/index');
-
-  // List of subpages that should not display the NavBar
+  const lowerPath = (pathname || '').toLowerCase();
+  const isSettingsSubPage = lowerPath.includes('/settings/') && 
+    !lowerPath.endsWith('/settings') && 
+    lowerPath !== '/settings';
+  
   const isSubPage =
-    pathname.includes('/gpu') ||
-    pathname.includes('/privacy') ||
-    pathname.includes('/payment') ||
-    pathname.includes('/support') ||
-    pathname.includes('/register') ||
-    pathname.includes('/settingProfil');
+    lowerPath.includes('/payment') ||
+    lowerPath.includes('/register') ||
+    isSettingsSubPage ||
+    lowerPath.includes('/gpusetting') || 
+    lowerPath.includes('/profilsetting') ||
+    lowerPath.includes('/privacysetting') ||
+    lowerPath.includes('/supportsetting') ||
+    lowerPath.includes('/profilesetting');
 
   useEffect(() => {
     const previous = previousPage.current;
     const wasOnSubPage = previousPage.current === 'subpage';
+    const wasOnSettingsSubPage = previous && typeof previous === 'string' && previous.startsWith('settings/');
 
-    // If returning from a subpage to a main page
+    if (isSettingsSubPage || wasOnSettingsSubPage) {
+      translateX.setValue(0);
+      const settingsPageMatch = lowerPath.match(/\/settings\/([^\/]+)/);
+      previousPage.current = settingsPageMatch ? `settings/${settingsPageMatch[1]}` : 'subpage';
+      return;
+    }
+
     if (wasOnSubPage && !isSubPage) {
       if (navState.gestureBack) {
         translateX.setValue(0);
@@ -46,26 +57,19 @@ export default function TabLayout() {
         }).start();
       }
     }
-    // If navigating to a subpage
-    else if (!wasOnSubPage && isSubPage) {
-      // Right-to-left animation (navigate to subpage)
+    else if (!wasOnSubPage && isSubPage && !isSettingsSubPage) {
       translateX.setValue(OFFSET);
       Animated.timing(translateX, {
         toValue: 0,
         duration: 250,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
-      }).start();
+        }).start();
     }
-    // Navigation between main pages
     else if (previous && currentPage && previous !== currentPage && !isSubPage) {
       const currentIndex = PAGE_ORDER.indexOf(currentPage as (typeof PAGE_ORDER)[number]);
       const previousIndex = PAGE_ORDER.indexOf(previous as (typeof PAGE_ORDER)[number]);
-
-      // Determines the direction of the transition
       const direction = currentIndex > previousIndex ? 1 : -1;
-
-      // Starting position (off-screen)
       translateX.setValue(direction * OFFSET);
 
       Animated.timing(translateX, {
@@ -73,25 +77,29 @@ export default function TabLayout() {
         duration: 250,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
-      }).start();
+        }).start();
+    }
+    else if (previous === (isSubPage ? 'subpage' : currentPage)) {
+      translateX.setValue(0);
     }
 
     previousPage.current = isSubPage ? 'subpage' : currentPage || null;
-  }, [pathname, isSubPage, currentPage, translateX]);
+  }, [pathname, isSubPage, isSettingsSubPage, currentPage, translateX, lowerPath]);
 
+  const shouldApplyAnimation = !isSettingsSubPage;
+  
   return (
     <View style={{ flex: 1, backgroundColor: '#EFF6FF' }}>
       <Animated.View
         style={{
           flex: 1,
           backgroundColor: '#EFF6FF',
-          transform: [{ translateX }],
+          transform: shouldApplyAnimation ? [{ translateX }] : [],
         }}
       >
         <Slot />
       </Animated.View>
 
-      {/* Displays the NavBar only on main pages (not Home or subpages) */}
       {!isHomePage && !isSubPage && <Navigation activePage={currentPage as any} />}
     </View>
   );

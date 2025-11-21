@@ -1,10 +1,11 @@
-// Import of the different libraries
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
+// import of different libraries
 import { useEffect } from 'react';
+import { Stack } from 'expo-router';
 import { useColorScheme } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

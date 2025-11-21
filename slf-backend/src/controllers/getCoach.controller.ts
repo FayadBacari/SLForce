@@ -1,9 +1,8 @@
-import { Request, Response } from 'express';
 import User from '../models/user';
+import { Request, Response } from 'express';
 
-// ------------------------------------------
-// GET — Récupérer tous les coachs
-// ------------------------------------------
+
+
 export const getAllCoachs = async (req: Request, res: Response) => {
     try {
         const coachs = await User.find({ role: 'coach' }).select('-password');
@@ -14,9 +13,6 @@ export const getAllCoachs = async (req: Request, res: Response) => {
     }
 };
 
-// ------------------------------------------
-// GET — Récupérer un coach via son ID
-// ------------------------------------------
 export const getCoachById = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
@@ -34,14 +30,10 @@ export const getCoachById = async (req: Request, res: Response) => {
     }
 };
 
-// ------------------------------------------
-// PATCH — Mise à jour du profil coach
-// ------------------------------------------
 export const updateCoachProfile = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
 
-        // On récupère coachProfile correctement (tel qu'envoyé par ton frontend)
         const coachProfileData = req.body.coachProfile;
 
         if (!coachProfileData) {
@@ -54,7 +46,6 @@ export const updateCoachProfile = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Coach introuvable" });
         }
 
-        // Création du sous-objet coachProfile si inexistant
         if (!user.coachProfile) {
             user.coachProfile = {
                 name: "",
@@ -68,7 +59,6 @@ export const updateCoachProfile = async (req: Request, res: Response) => {
             };
         }
 
-        // Mise à jour avec fallback
         user.coachProfile.name = coachProfileData.name ?? user.coachProfile.name;
         user.coachProfile.avatar = coachProfileData.avatar ?? user.coachProfile.avatar;
         user.coachProfile.speciality = coachProfileData.speciality ?? user.coachProfile.speciality;

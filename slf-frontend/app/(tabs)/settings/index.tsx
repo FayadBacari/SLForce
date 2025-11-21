@@ -1,15 +1,16 @@
-// Import of the different libraries
+// import of different libraries
 import { Stack, useRouter } from 'expo-router';
-import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-// Import of the different components
-import About from '../../components/About';
-import { SectionCardSettings } from '../../components/SectionCardSettings';
-import { SettingCard } from '../../components/SettingCard';
-// Import CSS styles
-import { styles } from '../../styles/settings';
+// import component 
+import About from '../../../components/About';
+import { SettingCard } from '../../../components/SettingCard';
+import { SectionCardSettings } from '../../../components/SectionCardSettings';
+
+// import css
+import { styles } from '../../../styles/settings';
+
 
 export default function Settings() {
   const router = useRouter();
@@ -49,21 +50,21 @@ export default function Settings() {
               title="Profil"
               description="Modifier tes infos personnelles"
               hasChevron
-              onPress={() => router.push('/settingProfil')}
+              onPress={() => router.push('/(tabs)/settings/profileSetting')}
             />
             <SettingCard
               logo="🔒"
               title="Confidentialité"
               description="Contrôle qui peut te voir"
               hasChevron
-              onPress={() => console.log('test ouverture')}
+              onPress={() => {}}
             />
             <SettingCard
               logo="🛡️"
               title="Sécurité"
               description="Mot de passe et authentification"
               hasChevron
-              onPress={() => router.push('/privacy')}
+              onPress={() => router.push('/(tabs)/settings/privacySetting')}
             />
           </SectionCardSettings>
 
@@ -73,28 +74,28 @@ export default function Settings() {
               title="Notifications"
               description="Reçois les messages importants"
               hasSwitch
-              onPress={() => console.log('Toggle notifications')}
+              onPress={() => {}}
             />
             <SettingCard
               logo="🔊"
               title="Sons"
               description="Sons des messages et appels"
               hasSwitch
-              onPress={() => console.log('test ouverture')}
+              onPress={() => {}}
             />
             <SettingCard
               logo="🌙"
               title="Mode sombre"
               description="Thème actuel"
               hasSwitch
-              onPress={() => console.log('test ouverture')}
+              onPress={() => {}}
             />
             <SettingCard
               logo="🌐"
               title="Langue"
               description="Français"
               hasChevron
-              onPress={() => console.log('test ouverture')}
+              onPress={() => {}}
             />
           </SectionCardSettings>
 
@@ -104,14 +105,14 @@ export default function Settings() {
               title="Paiements"
               description="Gérer tes abonnements"
               hasChevron
-              onPress={() => console.log('test ouverture')}
+              onPress={() => {}}
             />
             <SettingCard
               logo="⭐"
               title="BearLift Premium"
               description="Passe en mode Pro 🔥"
               hasChevron
-              onPress={() => console.log('test ouverture')}
+              onPress={() => {}}
             />
           </SectionCardSettings>
 
@@ -121,14 +122,14 @@ export default function Settings() {
               title="Aide & Support"
               description="FAQ et contact"
               hasChevron
-              onPress={() => router.push('/support')}
+              onPress={() => router.push('/(tabs)/settings/supportSetting')}
             />
             <SettingCard
               logo="👁️"
               title="Conditions d'utilisation"
               description="CGU et politique"
               hasChevron
-              onPress={() => router.push('/gpu')}
+              onPress={() => router.push('/(tabs)/settings/gpuSetting')}
             />
           </SectionCardSettings>
 

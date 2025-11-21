@@ -1,23 +1,12 @@
-// import of the different libraries
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ImageBackground, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from '../../../components/Icon';
+import { styles } from '../../../styles/chat';
+import { UIMessage, ConversationHeader } from '../../../types';
 
-import Icon from '../../components/Icon';
-// Import CSS styles
-import { styles } from '../../styles/chat';
-
-interface UIMessage {
-  id: string;
-  sender: 'me' | 'them';
-  text: string;
-  time: string;
-}
-
-// Données mockées pour les conversations et messages (aucun Firestore)
-const MOCK_HEADERS: Record<string, { name: string; avatar: string; status: 'online' | 'offline' }> =
-  {
+const MOCK_HEADERS: Record<string, ConversationHeader> = {
     '1': { name: 'Ashura Workout', avatar: '💪', status: 'online' },
     '2': { name: 'Coach Marina', avatar: '🏋️‍♀️', status: 'offline' },
     '3': { name: 'Team Street-Lift', avatar: '🥇', status: 'online' },
@@ -32,7 +21,7 @@ const MOCK_MESSAGES: Record<string, UIMessage[]> = {
     {
       id: 'm3',
       sender: 'them',
-      text: 'Je t’ai mis un focus sur le dos cette semaine.',
+      text: "Je t'ai mis un focus sur le dos cette semaine.",
       time: '09:02',
     },
   ],
@@ -43,11 +32,7 @@ export default function ConversationScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [message, setMessage] = useState<string>('');
-  const [header, setHeader] = useState<{
-    name: string;
-    avatar: string;
-    status: 'online' | 'offline';
-  }>({
+  const [header, setHeader] = useState<ConversationHeader>({
     name: 'Conversation',
     avatar: '💬',
     status: 'offline',
@@ -92,9 +77,8 @@ export default function ConversationScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.conversation}>
+      <SafeAreaView style={styles.conversation}>
       <View style={styles.conversation__container}>
-        {/* Header */}
         <View style={styles.conversationHeader}>
           <TouchableOpacity
             onPress={() => router.back()}
@@ -127,7 +111,6 @@ export default function ConversationScreen() {
           </View>
         </View>
 
-        {/* Messages */}
         <ImageBackground
           source={{
             uri: "data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4dbd4' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E",
@@ -165,7 +148,6 @@ export default function ConversationScreen() {
           </ScrollView>
         </ImageBackground>
 
-        {/* Input */}
         <View style={styles.messageInput}>
           <View style={styles.messageInput__wrapper}>
             <TouchableOpacity style={styles.messageInput__emojiButton}>
@@ -200,3 +182,4 @@ export default function ConversationScreen() {
     </SafeAreaView>
   );
 }
+

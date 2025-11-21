@@ -1,17 +1,17 @@
-// import of the different libraries
-import { Ionicons } from '@expo/vector-icons';
+// import of different libraries
 import { Stack } from 'expo-router';
-import { Image, Linking, ScrollView, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image, Linking, ScrollView, Text, View } from 'react-native';
+import { SwipeBackLayout } from '../../../components/SwipeBackLayout';
 
-// import of the different components
-import { SwipeBackLayout } from '../../components/SwipeBackLayout';
-// import CSS styles
-import styles from '../../styles/gpu';
+// import css 
+import styles from '../../../styles/gpu';
+
 
 export default function CGU() {
   // the mail adress for request
-  const handleEmail = () => Linking.openURL('mailto:legal@bearlift.com');
+  const handleEmail = () => Linking.openURL('mailto:fayadidriss.dev@gmail.com');
 
   return (
     <SwipeBackLayout>
@@ -32,7 +32,7 @@ export default function CGU() {
             <View style={styles.cgu__introHeader}>
               <View style={styles.cgu__logoWrapper}>
                 <Image
-                  source={require('../../assets/images/logo.png')}
+                  source={require('../../../assets/images/logo.png')}
                   style={styles.cgu__logoImage}
                 />
               </View>

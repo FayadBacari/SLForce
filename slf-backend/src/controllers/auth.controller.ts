@@ -14,13 +14,11 @@ export const register = async (req: Request, res: Response) => {
       coachProfile,
     } = req.body;
 
-    // Vérifie si l’email existe
     const exists = await User.findOne({ email });
     if (exists) {
       return res.status(400).json({ message: 'Email déjà utilisé' });
     }
 
-    // Si coach, vérifier que le pseudo n'est pas déjà pris
     if (role === 'coach' && coachProfile?.name) {
       const pseudoExists = await User.findOne({ 'coachProfile.name': coachProfile.name });
       if (pseudoExists) {
@@ -28,10 +26,8 @@ export const register = async (req: Request, res: Response) => {
       }
     }
 
-    // Hash du mot de passe
     const hashed = await hashPassword(password);
 
-    // Création du user
     const user = await User.create({
       email,
       password: hashed,
@@ -58,13 +54,11 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    // Recherche user
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'Email ou mot de passe incorrect' });
     }
 
-    // Vérifie mot de passe
     const valid = await comparePassword(password, user.password);
     if (!valid) {
       return res.status(400).json({ message: 'Email ou mot de passe incorrect' });
@@ -83,7 +77,6 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-// Vérifie si un nom de coach est déjà pris
 export const checkCoachName = async (req: Request, res: Response) => {
   try {
     const { name } = req.query;
@@ -101,7 +94,6 @@ export const checkCoachName = async (req: Request, res: Response) => {
   }
 };
 
-// Récupère le profil de l'utilisateur connecté
 export const getProfile = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;

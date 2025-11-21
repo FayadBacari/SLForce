@@ -3,7 +3,6 @@ import { updateAthleteProfile, getAthleteProfile } from '../controllers/updateAt
 
 const router = Router();
 
-
 router.get('/:id/athlete', getAthleteProfile);
 router.patch('/:id/athlete', updateAthleteProfile);
 

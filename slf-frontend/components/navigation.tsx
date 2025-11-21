@@ -1,26 +1,25 @@
-// import of the different libraries
+// import of different libraries
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
-import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 
+// import css
 import { styles } from './ui/navigation';
-// import JPG images (one per icon)
+
+// import others pages 
 import athlete from '../assets/images/athlete.jpg';
 import search from '../assets/images/loupe.png';
 import chat from '../assets/images/message.png';
 import settings from '../assets/images/reglage.png';
-
-type NavigationProps = {
-  activePage: 'profile' | 'profileCoach' | 'search' | 'chat' | 'settings';
-};
+import { NavigationProps, UserRole } from '../types';
 
 const Navigation: React.FC<NavigationProps> = ({ activePage }) => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const [role, setRole] = useState<'eleve' | 'coach'>('eleve');
+  const [role, setRole] = useState<UserRole>('eleve');
 
   useEffect(() => {
     let isMounted = true;
@@ -37,21 +36,19 @@ const Navigation: React.FC<NavigationProps> = ({ activePage }) => {
     };
   }, []);
 
-  // Simple navigation handler
   const handleNavigate = (page: NavigationProps['activePage']) => {
     if (page === activePage) return;
     router.push(`/(tabs)/${page}` as const);
   };
 
-  // Button configuration - dynamic based on role
   const navItems: {
-    key: 'profile' | 'profileCoach' | 'search' | 'chat' | 'settings';
+    key: 'profileAthlete' | 'profileCoach' | 'search' | 'chat' | 'settings';
     label: string;
     image: any;
   }[] = [
     role === 'coach'
       ? { key: 'profileCoach' as const, label: 'Coach', image: athlete }
-      : { key: 'profile' as const, label: 'Athlète', image: athlete },
+      : { key: 'profileAthlete' as const, label: 'Athlète', image: athlete },
     { key: 'search' as const, label: 'Recherche', image: search },
     { key: 'chat' as const, label: 'Messages', image: chat },
     { key: 'settings' as const, label: 'Réglages', image: settings },

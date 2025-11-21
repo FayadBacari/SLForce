@@ -2,34 +2,24 @@
 import { Stack } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 
-// import of the different components
+// import component 
 import SearchHeader from '../../components/searchHeader';
 import { CATEGORIES, type Coach } from '../../data/coaches';
-// import { apiFetch } from '../../services/auth'; // removed apiFetch import
-// import CSS styles
+
+// import css 
 import styles from '../../styles/search';
-
-interface StudentProfile {
-  uid: string;
-  firstName: string;
-  lastName: string;
-  avatar?: string;
-  role?: 'eleve' | 'coach';
-}
-
-const ALLOWED_CATEGORIES = ['Street-Lifting', 'Endurance', 'Freestyle'];
+import { StudentProfile, UserRole } from '../../types';
 
 const Search: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [role, setRole] = useState<'eleve' | 'coach'>('eleve');
+  const [role, setRole] = useState<UserRole>('eleve');
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [dbCoachs, setDbCoachs] = useState<any[]>([]);
 
-  // Load role from SecureStore
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -48,14 +38,11 @@ const Search: React.FC = () => {
       try {
         const res = await fetch('http://localhost:5132/coachs', { method: 'GET', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' } });
         if (!res.ok) {
-          const text = await res.text();
-          console.log('Erreur récupération coachs :', text);
           return;
         }
         const data = await res.json();
         setDbCoachs(data.coachs || []);
       } catch (err) {
-        console.log('Erreur récupération coachs :', err);
       }
     };
     loadCoachs();
@@ -70,8 +57,6 @@ const Search: React.FC = () => {
         });
 
         if (!res.ok) {
-          const text = await res.text();
-          console.log('Erreur fetch élèves:', text);
           return;
         }
 
@@ -86,7 +71,6 @@ const Search: React.FC = () => {
 
         setStudents(dbStudents);
       } catch (err) {
-        console.log('Erreur récupération élèves :', err);
       }
     };
 
@@ -210,6 +194,7 @@ const Search: React.FC = () => {
           <View style={styles['search__coach-name-wrapper']}>
             <Text style={styles['search__coach-name']}>
               {item.firstName || item.lastName || 'Élève'}
+              &nbsp; {/* space between the name and the first name */}
               {item.lastName || item.lastName || 'Élève'}
             </Text>
           </View>

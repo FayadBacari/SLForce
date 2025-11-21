@@ -10,7 +10,9 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 
+ // import utils 
 import { navState } from '../utils/navigationState';
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 

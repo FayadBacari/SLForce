@@ -1,25 +1,10 @@
-// import of the different libraries
+// import of different libraries
 import React from 'react';
 import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// Import CSS styles
+// import css
 import styles from './ui/searchHeader';
-
-interface Category {
-  id: string;
-  label: string;
-}
-
-interface SearchHeaderProps {
-  searchQuery: string;
-  setSearchQuery: (value: string) => void;
-  selectedCategory: string;
-  setSelectedCategory: (value: string) => void;
-  categories: Category[];
-  title?: string;
-  subtitle?: string;
-  placeholder?: string;
-}
+import { Category, SearchHeaderProps } from '../types';
 
 const SearchHeader: React.FC<SearchHeaderProps> = React.memo(
   ({
@@ -41,7 +26,6 @@ const SearchHeader: React.FC<SearchHeaderProps> = React.memo(
           </Text>
         </View>
 
-        {/* --- SEARCH BAR --- */}
         <View style={styles['header__search-bar']}>
           <View style={styles['header__search-input-wrapper']}>
             <Text style={styles['header__search-icon']}>🔍</Text>
@@ -64,7 +48,6 @@ const SearchHeader: React.FC<SearchHeaderProps> = React.memo(
           </View>
         </View>
 
-        {/* --- CATEGORIES --- */}
         {categories.length > 0 && (
           <ScrollView
             horizontal
@@ -88,14 +71,14 @@ const SearchHeader: React.FC<SearchHeaderProps> = React.memo(
                   style={[
                     styles['header__category'],
                     isActive && styles['header__category--active'],
-                    isActive && { backgroundColor: '#4F46E5' }, // clearer background for active badge
+                    isActive && { backgroundColor: '#4F46E5' },
                   ]}
                 >
                   <Text
                     style={[
                       styles['header__category-text'],
                       isActive && styles['header__category-text--active'],
-                      isActive && { color: '#FFFFFF', fontWeight: 'bold' }, // clearer text style for active badge
+                      isActive && { color: '#FFFFFF', fontWeight: 'bold' },
                     ]}
                   >
                     {cat.label}
@@ -106,7 +89,6 @@ const SearchHeader: React.FC<SearchHeaderProps> = React.memo(
           </ScrollView>
         )}
 
-        {/* --- STATS --- */}
         <View style={styles['header__stats']}>
           <View style={styles['header__stat-card']}>
             <Text style={styles['header__stat-value']}>30+</Text>

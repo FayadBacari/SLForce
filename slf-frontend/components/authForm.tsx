@@ -1,20 +1,22 @@
-// import of the different libraries
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+// import of different libraries
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+// import services
 import { apiFetch } from '../services/auth';
-// Import CSS styles
+
+// import css
 import styles from './ui/authForm';
+
 
 interface AuthFormProps {
   defaultTab?: 'login' | 'register';
 }
 
 export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
-  // Use UseState
   const [email, setEmail] = useState('');
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
@@ -23,8 +25,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'eleve' | 'coach'>('eleve');
-
-  // Use router for Navigation.
   const router = useRouter();
 
   const handleLogin = async () => {
@@ -52,11 +52,10 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
         await SecureStore.setItemAsync('userId', user._id);
       }
 
-      // Rediriger selon le rôle
       if (user?.role === 'coach') {
         router.push('/(tabs)/profileCoach');
       } else {
-        router.push('/(tabs)/profile');
+        router.push('/(tabs)/profileAthlete');
       }
     } catch (error: any) {
       setErrorMessage(error.message || 'Une erreur est survenue lors de la connexion');
@@ -74,10 +73,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
       setErrorMessage('Merci de remplir correctement tous les champs 🤔');
       return;
     }
-
-    // If the user is a coach, redirect to the multi-step coach registration
-    // screen with the base account information instead of creating the account
-    // directly here.
     if (role === 'coach') {
       router.push({
         pathname: '/(tabs)/registerCoach',
@@ -115,7 +110,7 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
         await SecureStore.setItemAsync('userId', user._id);
       }
 
-      router.push('/(tabs)/profile');
+      router.push('/(tabs)/profileAthlete');
     } catch (error: any) {
       setErrorMessage(error.message || "Une erreur est survenue lors de l'inscription");
     }
@@ -123,7 +118,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
 
   return (
     <View style={styles.auth__container}>
-      {/* Tabs */}
       <View style={styles.auth__tabs}>
         <TouchableOpacity
           style={[styles.auth__tab, activeTab === 'login' && styles.auth__tabActive]}
@@ -146,10 +140,8 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
         </TouchableOpacity>
       </View>
 
-      {/* LOGIN FORM */}
       {activeTab === 'login' ? (
         <>
-          {/* Email */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="mail-outline" size={20} color="grey" />
             <TextInput
@@ -163,7 +155,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Password */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="lock-closed-outline" size={20} color="grey" />
             <TextInput
@@ -183,9 +174,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
         </>
       ) : (
         <>
-          {/* REGISTER FORM */}
-
-          {/* First Name */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="person-outline" size={20} color="grey" />
             <TextInput
@@ -197,7 +185,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Last Name */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="person-outline" size={20} color="grey" />
             <TextInput
@@ -209,7 +196,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Email */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="mail-outline" size={20} color="grey" />
             <TextInput
@@ -223,7 +209,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Password */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="lock-closed-outline" size={20} color="grey" />
             <TextInput
@@ -236,7 +221,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Confirm Password */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="lock-closed-outline" size={20} color="grey" />
             <TextInput
@@ -249,7 +233,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Role selector */}
           <View style={styles.auth__roleSection}>
             <Text style={styles.auth__roleLabel}>Je suis un...</Text>
             <View style={styles.auth__roleContainer}>

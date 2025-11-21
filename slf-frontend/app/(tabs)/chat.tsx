@@ -1,25 +1,16 @@
-// import of the different libraries
-import { Stack, useRouter } from 'expo-router';
+// import of different libraries
 import { useMemo, useState } from 'react';
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// import of the different components
+// import component 
 import Icon from '../../components/Icon';
-// Import CSS styles
+
+// import css 
 import { styles } from '../../styles/chat';
+import { ConversationListItem } from '../../types';
 
-interface ConversationListItem {
-  id: string;
-  name: string;
-  avatar: string;
-  lastMsg: string;
-  time: string;
-  unread: number;
-  status: 'online' | 'offline';
-}
-
-// Données de conversations mockées pour la maquette (aucun accès réseau)
 const MOCK_CONVERSATIONS: ConversationListItem[] = [
   {
     id: '1',
@@ -64,7 +55,6 @@ const Chat: React.FC = () => {
     <SafeAreaView style={styles.app}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.app__container}>
-        {/* Header WhatsApp style */}
         <View style={styles.chatHeader}>
           <View style={styles.searchBar}>
             <Icon emoji="🔍" size={18} />
@@ -78,12 +68,11 @@ const Chat: React.FC = () => {
           </View>
         </View>
 
-        {/* Chat List */}
         <ScrollView style={styles.chatList} contentContainerStyle={styles.chatList__content}>
           {filtered.map((chat) => (
             <TouchableOpacity
               key={chat.id}
-              onPress={() => router.push({ pathname: '/chat/[id]', params: { id: chat.id } })}
+              onPress={() => router.push({ pathname: '/(tabs)/chat/[id]', params: { id: chat.id } })}
               style={styles.chatItem}
               activeOpacity={0.7}
             >

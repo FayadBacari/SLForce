@@ -1,22 +1,23 @@
-// import of the different libraries
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+// import of different libraries
 import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View, Animated } from 'react-native';
+import { apiFetch } from '../../services/auth';
+import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Text, TextInput, TouchableOpacity, View, Animated } from 'react-native';
 
-// import components
+// import component 
 import Icon from '../../components/Icon';
 
-// import services & CSS Styles
-import { apiFetch } from '../../services/auth';
+// import css 
 import { styles } from '../../styles/registerCoach';
+import { CoachRegistrationData, CoachRegistrationParams } from '../../types';
 
 const CoachRegistration = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [fadeAnim] = useState(new Animated.Value(1));
 
-  const [coachData, setCoachData] = useState({
+  const [coachData, setCoachData] = useState<CoachRegistrationData>({
     name: '',
     avatar: '🥇',
     speciality: '',
@@ -24,7 +25,7 @@ const CoachRegistration = () => {
     price: '',
     experience: '',
     description: '',
-    skills: [] as string[],
+    skills: [],
   });
 
   const [, setLoading] = useState(false);
@@ -38,20 +39,13 @@ const CoachRegistration = () => {
   const disciplineOptions = ['Street-Lifting', 'Set and Rep', 'Freestyle', 'Endurance'];
 
   const router = useRouter();
-  const params = useLocalSearchParams<{
-    email?: string;
-    password?: string;
-    firstName?: string;
-    lastName?: string;
-    role?: string;
-  }>();
+  const params = useLocalSearchParams<CoachRegistrationParams>();
 
   const handleNext = async () => {
-    // Étape 1 : on vérifie le pseudo avant de passer à la suite
     if (currentStep === 1) {
       const ok = await checkCoachNameAvailability(coachData.name);
       if (!ok) {
-        return; // pseudo déjà pris ou erreur => on reste sur l'étape 1
+        return;
       }
     }
 
@@ -408,8 +402,6 @@ const CoachRegistration = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        // On laisse le bouton cliquable dès qu'il y a un texte,
-        // et c'est handleNext qui décide si on peut avancer ou non
         return coachData.name.trim().length > 0 && !isCheckingName;
       case 2:
         return coachData.speciality.trim().length > 0;
@@ -432,7 +424,6 @@ const CoachRegistration = () => {
     <SafeAreaView style={styles.app}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
           <View style={[styles.progressFill, { width: `${(currentStep / totalSteps) * 100}%` }]} />
@@ -442,10 +433,8 @@ const CoachRegistration = () => {
         </Text>
       </View>
 
-      {/* Content */}
       <View style={styles.content}>{renderStep()}</View>
 
-      {/* Navigation Buttons */}
       <View style={styles.navigation}>
         {currentStep > 1 && (
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>

@@ -5,6 +5,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 // Import CSS styles
 import { styles } from './ui/settingCard.styles';
 
+
 interface SettingCardProps {
   logo: string;
   title: string;
