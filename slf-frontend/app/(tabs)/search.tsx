@@ -1,38 +1,25 @@
 // import of the different libraries
-import { useEffect, useMemo, useState } from 'react';
 import { Stack } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
+import { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlatList, Text, TouchableOpacity, View } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
 
-// import of the different components
+// import component 
 import SearchHeader from '../../components/searchHeader';
-import { COACHES, CATEGORIES, type Coach } from '../../data/coaches';
+import { CATEGORIES, type Coach } from '../../data/coaches';
 
-// import CSS styles
+// import css 
 import styles from '../../styles/search';
-
-// Firebase
-import app, { auth } from '../../firebaseConfig';
-import { getFirestore, collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
-
-interface StudentProfile {
-  uid: string;
-  displayName?: string;
-  email?: string;
-  avatar?: string;
-  role?: 'eleve' | 'coach';
-}
-
-const db = getFirestore(app);
+import { StudentProfile, UserRole } from '../../types';
 
 const Search: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [role, setRole] = useState<'eleve' | 'coach'>('eleve');
+  const [role, setRole] = useState<UserRole>('eleve');
   const [students, setStudents] = useState<StudentProfile[]>([]);
+  const [dbCoachs, setDbCoachs] = useState<any[]>([]);
 
-  // Load role from SecureStore
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -46,45 +33,101 @@ const Search: React.FC = () => {
     };
   }, []);
 
-  // Subscribe students if coach
   useEffect(() => {
-    if (role !== 'coach') return;
-    const user = auth.currentUser;
-    if (!user) return;
-    const q = query(
-      collection(db, 'users'),
-      where('role', '==', 'eleve'),
-      orderBy('displayName')
-    );
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const arr: StudentProfile[] = snap.docs.map((d) => ({ uid: d.id, ...(d.data() as any) }));
-        setStudents(arr);
-      },
-      (err) => {
-        console.warn('Firestore users listener error:', err.code || err.message);
+    const loadCoachs = async () => {
+      try {
+        const res = await fetch('http://localhost:5132/coachs', { method: 'GET', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' } });
+        if (!res.ok) {
+          return;
+        }
+        const data = await res.json();
+        setDbCoachs(data.coachs || []);
+      } catch (err) {
       }
-    );
-    return () => unsub();
-  }, [role]);
+    };
+    loadCoachs();
+  }, []);
 
-  const coaches: Coach[] = COACHES;
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        const res = await fetch('http://localhost:5132/students', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        });
+
+        if (!res.ok) {
+          return;
+        }
+
+        const data = await res.json();
+        const dbStudents: StudentProfile[] = data.students.map((s: any) => ({
+          uid: s._id,
+          firstName: s.firstName,
+          lastName: s.lastName,
+          avatar: s.athleteProfile?.avatar || '👤',
+          role: s.role,
+        }));
+
+        setStudents(dbStudents);
+      } catch (err) {
+      }
+    };
+
+    loadStudents();
+  }, []);
+
+  const coaches: Coach[] = dbCoachs.map((c: any, index: number) => ({
+    id: index + 1,
+    name: c.coachProfile?.name || `${c.firstName} ${c.lastName}`,
+    avatar: c.coachProfile?.avatar || '🏋️',
+    speciality: c.coachProfile?.speciality || 'Coach sportif',
+    location: c.coachProfile?.location || 'Inconnu',
+    rating: c.coachProfile?.rating || 5,
+    reviews: c.coachProfile?.reviews || 0,
+    students: c.students || 0,
+    price: c.coachProfile?.price || 0,
+    experience: c.coachProfile?.experience || 0,
+    description: c.coachProfile?.description || '',
+    skills: c.coachProfile?.skills || [],
+  }));
 
   const filteredCoaches = useMemo(() => {
-    return coaches.filter(
-      (coach) =>
-        coach.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        coach.speciality.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        coach.location.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [searchQuery]);
+    if (selectedCategory === 'all') {
+      return coaches.filter(coach => {
+        const q = searchQuery.toLowerCase();
+        return (
+          coach.name.toLowerCase().includes(q) ||
+          coach.speciality.toLowerCase().includes(q) ||
+          coach.location.toLowerCase().includes(q)
+        );
+      });
+    }
+
+    return coaches.filter(coach => {
+      const q = searchQuery.toLowerCase();
+      const category = selectedCategory;
+
+      const matchesSearch =
+        coach.name.toLowerCase().includes(q) ||
+        coach.speciality.toLowerCase().includes(q) ||
+        coach.location.toLowerCase().includes(q);
+
+      const hasCategoryBadge =
+        coach.skills.some(skill => skill === category) ||
+        coach.speciality === category;
+
+      return matchesSearch && hasCategoryBadge;
+    });
+  }, [coaches, searchQuery, selectedCategory]);
 
   const filteredStudents = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return students;
-    return students.filter((s) =>
-      (s.displayName || '').toLowerCase().includes(q) || (s.email || '').toLowerCase().includes(q),
+    return students.filter(
+      (s) =>
+        (s.firstName || '').toLowerCase().includes(q) ||
+        (s.lastName || '').toLowerCase().includes(q),
     );
   }, [students, searchQuery]);
 
@@ -97,11 +140,6 @@ const Search: React.FC = () => {
         <View style={styles['search__coach-info']}>
           <View style={styles['search__coach-name-wrapper']}>
             <Text style={styles['search__coach-name']}>{item.name}</Text>
-            {item.verified && (
-              <View style={styles['search__coach-verified']}>
-                <Text style={styles['search__coach-verified-icon']}>✓</Text>
-              </View>
-            )}
           </View>
           <Text style={styles['search__coach-speciality']}>{item.speciality}</Text>
           <View style={styles['search__coach-location-wrapper']}>
@@ -154,9 +192,12 @@ const Search: React.FC = () => {
         </View>
         <View style={styles['search__coach-info']}>
           <View style={styles['search__coach-name-wrapper']}>
-            <Text style={styles['search__coach-name']}>{item.displayName || item.email || 'Élève'}</Text>
+            <Text style={styles['search__coach-name']}>
+              {item.firstName || item.lastName || 'Élève'}
+              &nbsp; {/* space between the name and the first name */}
+              {item.lastName || item.lastName || 'Élève'}
+            </Text>
           </View>
-          <Text style={styles['search__coach-speciality']}>{item.email}</Text>
         </View>
       </View>
 
@@ -173,7 +214,9 @@ const Search: React.FC = () => {
   const listData = isCoach ? filteredStudents : filteredCoaches;
   const renderItem = isCoach ? renderStudent : renderCoach;
   const headerTitle = isCoach ? 'Trouve un élève' : 'Trouve ton Coach';
-  const headerSubtitle = isCoach ? 'Recherche dans les profils élèves' : 'Les meilleurs coachs de France 🇫🇷';
+  const headerSubtitle = isCoach
+    ? 'Recherche dans les profils élèves'
+    : 'Les meilleurs coachs de France 🇫🇷';
   const headerPlaceholder = isCoach ? 'Rechercher un élève...' : 'Rechercher un coach...';
 
   return (

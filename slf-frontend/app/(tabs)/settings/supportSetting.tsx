@@ -1,21 +1,14 @@
-// Import of the different libraries
+// import of different libraries
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 
-// Import of the different layout
-import { SwipeBackLayout } from '../../components/SwipeBackLayout';
+// import component
+import { SwipeBackLayout } from '../../../components/SwipeBackLayout';
 
-// Import CSS styles
-import styles from '../../styles/support';
-
-
-interface FAQ {
-  id: number;
-  category: string;
-  question: string;
-  answer: string;
-}
+// import css
+import styles from '../../../styles/support';
+import { FAQ } from '../../../types';
 
 const HelpSupport: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');

@@ -1,24 +1,18 @@
-// import of the different libraries
 import { Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-
-// import CSS styles
+import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '../../styles/payment';
-
 
 export default function Payments() {
   return (
     <SafeAreaView style={styles.payments__safeArea}>
       <ScrollView style={styles.payments__container} showsVerticalScrollIndicator={false}>
         <Stack.Screen options={{ headerShown: false }} />
-        {/* HEADER */}
         <View style={styles.payments__header}>
           <Text style={styles.payments__title}>Paiements</Text>
           <Text style={styles.payments__subtitle}>Gérer tes abonnements 💳</Text>
         </View>
 
-        {/* METHOD OF PAYMENT */}
         <View style={styles.payments__section}>
           <Text style={styles.payments__sectionTitle}>Moyen de paiement</Text>
           <View style={styles.payments__card}>
@@ -37,7 +31,6 @@ export default function Payments() {
           </View>
         </View>
 
-        {/* ACTIVE SUBSCRIPTIONS */}
         <View style={styles.payments__section}>
           <Text style={styles.payments__sectionTitle}>Abonnements actifs</Text>
 
@@ -86,14 +79,12 @@ export default function Payments() {
           </View>
         </View>
 
-        {/* MONTHLY TOTAL */}
         <View style={styles.payments__total}>
           <Text style={styles.payments__totalLabel}>Total mensuel</Text>
           <Text style={styles.payments__totalAmount}>89.98€</Text>
           <Text style={styles.payments__totalSub}>2 abonnements actifs</Text>
         </View>
 
-        {/* PAYMENT HISTORY */}
         <View style={styles.payments__section}>
           <Text style={styles.payments__sectionTitle}>Historique des paiements</Text>
           {['15 Oct 2024', '20 Sept 2024', '15 Sept 2024', '20 Août 2024', '15 Août 2024'].map(
@@ -112,7 +103,6 @@ export default function Payments() {
           )}
         </View>
 
-        {/* SECURITY MESSAGE */}
         <View style={styles.payments__footer}>
           <Text style={styles.payments__footerTitle}>Paiements 100% sécurisés</Text>
           <Text style={styles.payments__footerText}>

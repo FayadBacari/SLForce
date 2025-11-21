@@ -1,41 +1,38 @@
-// import of the different libraries
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ImageBackground, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from '../../../components/Icon';
+import { styles } from '../../../styles/chat';
+import { UIMessage, ConversationHeader } from '../../../types';
 
-import Icon from '../../components/Icon';
-// Import CSS styles
-import { styles } from '../../styles/chat';
+const MOCK_HEADERS: Record<string, ConversationHeader> = {
+    '1': { name: 'Ashura Workout', avatar: '💪', status: 'online' },
+    '2': { name: 'Coach Marina', avatar: '🏋️‍♀️', status: 'offline' },
+    '3': { name: 'Team Street-Lift', avatar: '🥇', status: 'online' },
+  };
 
-// Firebase
-import app, { auth } from '../../firebaseConfig';
-import {
-  addDoc,
-  collection,
-  doc,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  updateDoc,
-  getFirestore,
-} from 'firebase/firestore';
-
-const db = getFirestore(app);
-
-interface UIMessage {
-  id: string;
-  sender: 'me' | 'them';
-  text: string;
-  time: string;
-}
+const MOCK_MESSAGES: Record<string, UIMessage[]> = {
+  '1': [
+    { id: 'm1', sender: 'them', text: 'Prêt pour une nouvelle semaine ?', time: '14:10' },
+    { id: 'm2', sender: 'me', text: 'Oui coach, on y va à fond 💥', time: '14:12' },
+  ],
+  '2': [
+    {
+      id: 'm3',
+      sender: 'them',
+      text: "Je t'ai mis un focus sur le dos cette semaine.",
+      time: '09:02',
+    },
+  ],
+  '3': [{ id: 'm4', sender: 'them', text: 'Objectif : nouveau PR au squat.', time: 'Hier' }],
+};
 
 export default function ConversationScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [message, setMessage] = useState<string>('');
-  const [header, setHeader] = useState<{ name: string; avatar: string; status: 'online' | 'offline' }>({
+  const [header, setHeader] = useState<ConversationHeader>({
     name: 'Conversation',
     avatar: '💬',
     status: 'offline',
@@ -44,69 +41,25 @@ export default function ConversationScreen() {
 
   useEffect(() => {
     if (!id) return;
-    const user = auth.currentUser;
-    // Header subscription (conversation meta)
-    const convRef = doc(db, 'conversations', String(id));
-    const unsubConv = onSnapshot(
-      convRef,
-      (snap) => {
-        const data = (snap.data() || {}) as any;
-        const members: string[] = Array.isArray((data as any).members) ? (data as any).members : [];
-        const otherId = user ? members.find((m) => m !== user.uid) || user.uid : '';
-        const name = (data as any).title || (data as any).name || ((data as any).memberNames && (data as any).memberNames[otherId]) || 'Conversation';
-        setHeader({ name, avatar: (data as any).avatar || '💬', status: 'offline' });
-      },
-      (err) => {
-        console.warn('Firestore conversation header error:', err.code || err.message);
-      }
-    );
-
-    // Messages subscription
-    const msgsRef = collection(convRef, 'messages');
-    const q = query(msgsRef, orderBy('createdAt', 'asc'));
-    const unsubMsgs = onSnapshot(
-      q,
-      (snap) => {
-        const items: UIMessage[] = snap.docs.map((d) => {
-          const data = d.data() as any;
-          const created = data.createdAt?.toDate?.() || new Date();
-          const sender: 'me' | 'them' = user && data.senderId === user.uid ? 'me' : 'them';
-          return {
-            id: d.id,
-            sender,
-            text: String(data.text || ''),
-            time: new Date(created).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          };
-        });
-        setMessages(items);
-      },
-      (err) => {
-        console.warn('Firestore messages listener error:', err.code || err.message);
-      }
-    );
-
-    return () => {
-      unsubConv();
-      unsubMsgs();
-    };
+    const key = String(id);
+    setHeader(MOCK_HEADERS[key] || { name: 'Conversation', avatar: '💬', status: 'offline' });
+    setMessages(MOCK_MESSAGES[key] || []);
   }, [id]);
 
-  const handleSend = async () => {
-    const user = auth.currentUser;
-    if (!user || !id) return;
+  const handleSend = () => {
     const text = message.trim();
     if (!text) return;
 
-    const convRef = doc(db, 'conversations', String(id));
-    await addDoc(collection(convRef, 'messages'), {
+    const now = new Date();
+    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const newMessage: UIMessage = {
+      id: `${Date.now()}`,
+      sender: 'me',
       text,
-      senderId: user.uid,
-      createdAt: serverTimestamp(),
-    });
-    await updateDoc(convRef, {
-      lastMessage: text,
-      lastMessageAt: serverTimestamp(),
-    });
+      time,
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
     setMessage('');
   };
 
@@ -124,9 +77,8 @@ export default function ConversationScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.conversation}>
+      <SafeAreaView style={styles.conversation}>
       <View style={styles.conversation__container}>
-        {/* Header */}
         <View style={styles.conversationHeader}>
           <TouchableOpacity
             onPress={() => router.back()}
@@ -138,9 +90,7 @@ export default function ConversationScreen() {
             <View style={styles.conversationHeader__avatar}>
               <Text style={styles.conversationHeader__avatarEmoji}>{header.avatar}</Text>
             </View>
-            {header.status === 'online' && (
-              <View style={styles.conversationHeader__statusOnline} />
-            )}
+            {header.status === 'online' && <View style={styles.conversationHeader__statusOnline} />}
           </View>
           <View style={styles.conversationHeader__info}>
             <Text style={styles.conversationHeader__name}>{header.name}</Text>
@@ -161,7 +111,6 @@ export default function ConversationScreen() {
           </View>
         </View>
 
-        {/* Messages */}
         <ImageBackground
           source={{
             uri: "data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4dbd4' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E",
@@ -199,7 +148,6 @@ export default function ConversationScreen() {
           </ScrollView>
         </ImageBackground>
 
-        {/* Input */}
         <View style={styles.messageInput}>
           <View style={styles.messageInput__wrapper}>
             <TouchableOpacity style={styles.messageInput__emojiButton}>
@@ -234,3 +182,4 @@ export default function ConversationScreen() {
     </SafeAreaView>
   );
 }
+

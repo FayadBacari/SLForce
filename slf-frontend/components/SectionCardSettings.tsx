@@ -5,6 +5,7 @@ import { View, Text } from 'react-native';
 // Import CSS styles
 import { styles } from './ui/sectionCardSettings.styles';
 
+
 interface SectionCardSettingsProps {
   title: string;
   children: React.ReactNode;

@@ -1,8 +1,6 @@
-// Import different library
-import http, { Server } from "http";
 import app from "./index";
+import http, { Server } from "http";
 
-// the different types
 type Port = number | string | false;
 type ServerError = NodeJS.ErrnoException;
 
@@ -18,7 +16,6 @@ const port: Port = normalizePort(process.env.PORT || "7000");
 
 app.set("port", port);
 
-// Error handling
 const errorHandler = (error: ServerError): void => {
   if (error.syscall !== "listen") throw error;
 
@@ -35,7 +32,6 @@ const errorHandler = (error: ServerError): void => {
   }
 };
 
-// server creat with import http
 const server: Server = http.createServer(app);
 
 server.on("error", errorHandler);

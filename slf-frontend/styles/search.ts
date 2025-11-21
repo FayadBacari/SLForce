@@ -232,6 +232,7 @@ const styles = StyleSheet.create({
   'search__coach-name': {
     fontSize: 18,
     fontWeight: '900',
+    marginTop: 20,
     color: '#1F2937',
   },
 
@@ -338,7 +339,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 12,
-    borderTopWidth: 1,
+    borderTopWidth: 1.5,
     borderTopColor: '#F3F4F6',
   },
 

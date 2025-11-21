@@ -1,17 +1,16 @@
-// import of the different libraries
+// import of different libraries
 import { Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Linking, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Import of the different components
-import { SwipeBackLayout } from '../../components/SwipeBackLayout';
+// import component 
+import { SwipeBackLayout } from '../../../components/SwipeBackLayout';
 
-// import CSS styles
-import styles from '../../styles/privacy';
+// import css
+import styles from '../../../styles/privacy';
 
 
 export default function Privacy() {
-  
   // Variable to handle link opening mail
   const handleOpenLink = (url: string) => {
     Linking.openURL(url);

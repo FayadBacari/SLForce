@@ -1,42 +1,115 @@
-// import of the different libraries
-import { useState } from 'react';
+// import of different libraries
 import { Stack } from 'expo-router';
+import { useState, useEffect } from 'react';
+import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// import of the different components
+// import component 
 import Icon from '../../components/Icon';
 
-// import CSS styles
+// import css 
 import { styles } from '../../styles/profile';
-
+import { AthleteRecords, AthleteProfile } from '../../types';
 
 const Profile = () => {
   const [isEditingRecords, setIsEditingRecords] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
-  const [records, setRecords] = useState({
+  const [records, setRecords] = useState<AthleteRecords>({
     muscleUp: '16.25',
     traction: '50',
     dips: '70',
     squat: '120',
   });
 
-  const [profile, setProfile] = useState({
-    name: 'Youssef',
-    photo: null as string | null,
-    gender: 'male' as 'male' | 'female',
+  const [profile, setProfile] = useState<AthleteProfile>({
+    name: 'Cassim',
+    photo: null,
+    gender: 'male',
     weightCategory: '-80',
     weight: '78',
     height: '175',
   });
 
+  useEffect(() => {
+    const loadAthlete = async () => {
+      try {
+        const userId = await SecureStore.getItemAsync('userId');
+        if (!userId) {
+          return;
+        }
+
+        const BASE = 'http://localhost:5132';
+        const url = `${BASE}/users/${userId}/athlete`;
+
+        const resp = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!resp.ok) {
+          return;
+        }
+
+        const json = await resp.json();
+
+        if (!json.athleteProfile) {
+          return;
+        }
+
+        const a = json.athleteProfile;
+
+        setProfile(prev => ({
+          name: a.name ?? prev.name,
+          photo: a.avatar ?? prev.photo,
+          gender: a.gender ?? prev.gender,
+          weightCategory: a.weightCategory ?? prev.weightCategory,
+          weight: a.weight !== undefined ? String(a.weight) : prev.weight,
+          height: a.height !== undefined ? String(a.height) : prev.height,
+        }));
+
+        setRecords(prev => ({
+          muscleUp: a.records?.muscleUp !== undefined ? String(a.records.muscleUp) : prev.muscleUp,
+          traction: a.records?.traction !== undefined ? String(a.records.traction) : prev.traction,
+          dips: a.records?.dips !== undefined ? String(a.records.dips) : prev.dips,
+          squat: a.records?.squat !== undefined ? String(a.records.squat) : prev.squat,
+        }));
+      } catch (err) {
+      }
+    };
+
+    loadAthlete();
+  }, []);
+
+  const filterNumericInput = (value: string, allowDecimal = true) => {
+    let filtered = value.replace(allowDecimal ? /[^0-9.]/g : /[^0-9]/g, '');
+    if (allowDecimal) {
+      const parts = filtered.split('.');
+      if (parts.length > 2) {
+        filtered = parts[0] + '.' + parts.slice(1).join('');
+      }
+    }
+    return filtered;
+  };
+
   const handleRecordChange = (field: keyof typeof records, value: string) => {
-    setRecords({ ...records, [field]: value });
+    const filtered = filterNumericInput(value, true);
+    if (filtered === '' && value !== '') return;
+    setRecords({ ...records, [field]: filtered });
   };
 
   const handleProfileChange = (field: keyof typeof profile, value: any) => {
-    setProfile({ ...profile, [field]: value });
+    if (field === 'weight' || field === 'height') {
+      const filtered = filterNumericInput(value, false);
+      if (filtered === '' && value !== '') return;
+      setProfile({ ...profile, [field]: filtered });
+    } else {
+      setProfile({ ...profile, [field]: value });
+    }
   };
 
   const calculateTotal = () => {
@@ -56,7 +129,6 @@ const Profile = () => {
     <SafeAreaView style={styles.app}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.app__container}>
-        {/* Header */}
         <View style={styles.header}>
           <View style={styles.header__content}>
             <View>
@@ -71,7 +143,6 @@ const Profile = () => {
           contentContainerStyle={styles.main__content}
           showsVerticalScrollIndicator={false}
         >
-          {/* Profile Card */}
           <View style={styles.card}>
             <View style={styles.card__header}>
               <View style={styles.card__titleWrapper}>
@@ -145,10 +216,9 @@ const Profile = () => {
                   <Text style={styles.genderSelector__emoji}>👩</Text>
                   <Text style={styles.genderSelector__text}>FEMME</Text>
                 </TouchableOpacity>
-              </View>
             </View>
+          </View>
 
-            {/* Weight Category */}
             <View style={styles.field}>
               <Text style={styles.field__label}>CATÉGORIE DE POIDS</Text>
               <View style={styles.categoryGrid}>
@@ -176,7 +246,6 @@ const Profile = () => {
               </View>
             </View>
 
-            {/* Weight and Height */}
             <View style={styles.statsRow}>
               <View style={styles.statsRow__item}>
                 <View style={styles.field__labelWrapper}>
@@ -215,7 +284,28 @@ const Profile = () => {
 
             {isEditingProfile && (
               <TouchableOpacity
-                onPress={() => setIsEditingProfile(false)}
+                onPress={async () => {
+                  const userId = await SecureStore.getItemAsync('userId');
+                  if (!userId) return;
+
+                  await fetch(`http://localhost:5132/users/${userId}/athlete`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      ...profile,
+                      weight: Number(profile.weight),
+                      height: Number(profile.height),
+                      records: {
+                        muscleUp: Number(records.muscleUp),
+                        traction: Number(records.traction),
+                        dips: Number(records.dips),
+                        squat: Number(records.squat),
+                      },
+                    }),
+                  });
+
+                  setIsEditingProfile(false);
+                }}
                 style={[styles.button, styles['button--full'], styles['button--save']]}
               >
                 <Icon emoji="💾" size={20} />
@@ -224,7 +314,6 @@ const Profile = () => {
             )}
           </View>
 
-          {/* Records Card */}
           <View style={styles.card}>
             <View style={styles.card__header}>
               <View style={styles.card__titleWrapper}>
@@ -339,7 +428,28 @@ const Profile = () => {
 
             {isEditingRecords && (
               <TouchableOpacity
-                onPress={() => setIsEditingRecords(false)}
+                onPress={async () => {
+                  const userId = await SecureStore.getItemAsync('userId');
+                  if (!userId) return;
+
+                  await fetch(`http://localhost:5132/users/${userId}/athlete`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      ...profile,
+                      weight: Number(profile.weight),
+                      height: Number(profile.height),
+                      records: {
+                        muscleUp: Number(records.muscleUp),
+                        traction: Number(records.traction),
+                        dips: Number(records.dips),
+                        squat: Number(records.squat),
+                      },
+                    }),
+                  });
+
+                  setIsEditingRecords(false);
+                }}
                 style={[styles.button, styles['button--full'], styles['button--saveRecords']]}
               >
                 <Icon emoji="💾" size={20} />
@@ -348,7 +458,6 @@ const Profile = () => {
             )}
           </View>
 
-          {/* Total Score */}
           <View style={styles.totalCard}>
             <View style={styles.totalCard__content}>
               <View>

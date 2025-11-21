@@ -1,24 +1,22 @@
-// import of the different libraries
+// import of different libraries
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { auth } from '../firebaseConfig';
-import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import * as SecureStore from 'expo-secure-store';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// Import CSS styles
+// import services
+import { apiFetch } from '../services/auth';
+
+// import css
 import styles from './ui/authForm';
 
-// Import helper apiFetch
 
 interface AuthFormProps {
   defaultTab?: 'login' | 'register';
 }
 
 export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
-  // Use UseState
   const [email, setEmail] = useState('');
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
@@ -27,30 +25,40 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'eleve' | 'coach'>('eleve');
-
-  // Use rooter for Navigation.
   const router = useRouter();
 
   const handleLogin = async () => {
     setErrorMessage('');
+
+    if (!email || !password) {
+      setErrorMessage('Merci de remplir tous les champs obligatoires 🤔');
+      return;
+    }
+
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const token = await userCredential.user.getIdToken();
-      // Save token to SecureStore
-      await SecureStore.setItemAsync('token', token);
-      router.push('/(tabs)/chat');
-    } catch (error: any) {
-      if (error.code === 'auth/invalid-email') {
-        setErrorMessage("L’adresse e-mail n’est pas valide 🤔");
-      } else if (error.code === 'auth/user-not-found') {
-        setErrorMessage("Aucun compte trouvé avec cette adresse e-mail 🚫");
-      } else if (error.code === 'auth/wrong-password') {
-        setErrorMessage("Le mot de passe est incorrect 🔐");
-      } else if (error.code === 'auth/too-many-requests') {
-        setErrorMessage("Trop de tentatives, réessaie plus tard ⏳");
-      } else {
-        setErrorMessage("Une erreur est survenue. Réessaie plus tard ⚠️");
+      const res = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+
+      const { token, user } = res as any;
+      if (token) {
+        await SecureStore.setItemAsync('token', token);
       }
+      if (user?.role) {
+        await SecureStore.setItemAsync('role', user.role);
+      }
+      if (user?._id) {
+        await SecureStore.setItemAsync('userId', user._id);
+      }
+
+      if (user?.role === 'coach') {
+        router.push('/(tabs)/profileCoach');
+      } else {
+        router.push('/(tabs)/profileAthlete');
+      }
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Une erreur est survenue lors de la connexion');
     }
   };
 
@@ -60,41 +68,56 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
       setErrorMessage('Les mots de passe ne correspondent pas');
       return;
     }
+
+    if (!email || !password) {
+      setErrorMessage('Merci de remplir correctement tous les champs 🤔');
+      return;
+    }
+    if (role === 'coach') {
+      router.push({
+        pathname: '/(tabs)/registerCoach',
+        params: {
+          email,
+          password,
+          firstName,
+          lastName,
+          role,
+        },
+      } as any);
+      return;
+    }
+
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const token = await userCredential.user.getIdToken();
-      await SecureStore.setItemAsync('token', token);
-      // Persist selected role locally to adapt UI (e.g., hide Athlète tab for coach)
-      await SecureStore.setItemAsync('role', role);
-      // Create user profile in Firestore for search/filtering
-      const db = getFirestore();
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        uid: userCredential.user.uid,
-        email,
-        role,
-        firstName,
-        lastName,
-        displayName: `${firstName} ${lastName}`.trim() || email,
-        createdAt: serverTimestamp(),
-        avatar: role === 'coach' ? '🏋️' : '👤',
+      const res = await apiFetch('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password,
+          role,
+          firstName,
+          lastName,
+        }),
       });
-      router.push('/(tabs)/chat');
+
+      const { token, user } = res as any;
+      if (token) {
+        await SecureStore.setItemAsync('token', token);
+      }
+      if (user?.role) {
+        await SecureStore.setItemAsync('role', user.role);
+      }
+      if (user?._id) {
+        await SecureStore.setItemAsync('userId', user._id);
+      }
+
+      router.push('/(tabs)/profileAthlete');
     } catch (error: any) {
-  if (error.code === 'auth/email-already-in-use') {
-    setErrorMessage("Cette adresse e-mail est déjà utilisée 🔑");
-  } else if (error.code === 'auth/invalid-email') {
-    setErrorMessage("L’adresse e-mail n’est pas valide 🤔");
-  } else if (error.code === 'auth/weak-password') {
-    setErrorMessage("Ton mot de passe est trop faible. Minimum 6 caractères 💪");
-  } else {
-    setErrorMessage("Une erreur est survenue. Réessaie plus tard ⚠️");
-  }
-}
+      setErrorMessage(error.message || "Une erreur est survenue lors de l'inscription");
+    }
   };
 
   return (
     <View style={styles.auth__container}>
-      {/* Tabs */}
       <View style={styles.auth__tabs}>
         <TouchableOpacity
           style={[styles.auth__tab, activeTab === 'login' && styles.auth__tabActive]}
@@ -117,10 +140,8 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
         </TouchableOpacity>
       </View>
 
-      {/* LOGIN FORM */}
       {activeTab === 'login' ? (
         <>
-          {/* Email */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="mail-outline" size={20} color="grey" />
             <TextInput
@@ -134,7 +155,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Password */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="lock-closed-outline" size={20} color="grey" />
             <TextInput
@@ -154,9 +174,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
         </>
       ) : (
         <>
-          {/* REGISTER FORM */}
-
-          {/* First Name */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="person-outline" size={20} color="grey" />
             <TextInput
@@ -168,7 +185,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Last Name */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="person-outline" size={20} color="grey" />
             <TextInput
@@ -180,7 +196,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Email */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="mail-outline" size={20} color="grey" />
             <TextInput
@@ -194,7 +209,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Password */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="lock-closed-outline" size={20} color="grey" />
             <TextInput
@@ -207,7 +221,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Confirm Password */}
           <View style={styles.auth__inputWrapper}>
             <Ionicons name="lock-closed-outline" size={20} color="grey" />
             <TextInput
@@ -220,7 +233,6 @@ export default function AuthForm({ defaultTab = 'login' }: AuthFormProps) {
             />
           </View>
 
-          {/* Role selector */}
           <View style={styles.auth__roleSection}>
             <Text style={styles.auth__roleLabel}>Je suis un...</Text>
             <View style={styles.auth__roleContainer}>

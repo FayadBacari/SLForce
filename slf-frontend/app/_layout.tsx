@@ -1,4 +1,4 @@
-// Import of the different libraries
+// import of different libraries
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { useColorScheme } from 'react-native';

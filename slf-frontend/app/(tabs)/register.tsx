@@ -1,15 +1,15 @@
-// import of the different libraries
+// import of different libraries
 import { View, ScrollView, Image, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// import of the different components
+// import component 
 import AuthForm from '../../components/authForm';
 
-// import of the different assets
-const logo = require('../../assets/images/logo.png');
-
-// import CSS styles
+// import css 
 import styles from '../../styles/register';
+
+// import asset images.
+const logo = require('../../assets/images/logo.png');
 
 
 export default function Register() {
@@ -20,7 +20,6 @@ export default function Register() {
         contentContainerStyle={styles.register__scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* HEADER */}
         <View style={styles.register__header}>
           <View style={styles.register__logoBackground}>
             <Image source={logo} style={styles.register__logoImage} />
@@ -29,7 +28,6 @@ export default function Register() {
           <Text style={styles.register__subtitle}>Rejoins la communauté 💪</Text>
         </View>
 
-        {/* FORM */}
         <AuthForm defaultTab="register" />
       </ScrollView>
     </SafeAreaView>

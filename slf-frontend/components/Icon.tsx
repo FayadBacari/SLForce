@@ -1,4 +1,4 @@
-import React from 'react';
+// import of different libraries
 import { Text } from 'react-native';
 
 interface IconProps {

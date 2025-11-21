@@ -1,21 +1,14 @@
-// import of the different libraries
+// import of different libraries
 import { useState } from 'react';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// import of the different components
-import { SwipeBackLayout } from '../../components/SwipeBackLayout';
+// import component 
+import { SwipeBackLayout } from '../../../components/SwipeBackLayout';
 
-// import CSS styles
-import styles from '../../styles/settingProfil';
-
-
-interface UserProfile {
-  name: string;
-  email: string;
-  phone: string;
-  photo: string | null;
-}
+// import css
+import styles from '../../../styles/settingProfil';
+import { UserProfile, PasswordState } from '../../../types';
 
 const ProfileSettings: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile>({
@@ -25,7 +18,7 @@ const ProfileSettings: React.FC = () => {
     photo: null,
   });
 
-  const [passwords, setPasswords] = useState({
+  const [passwords, setPasswords] = useState<PasswordState>({
     current: '',
     new: '',
     confirm: '',
@@ -52,11 +45,9 @@ const ProfileSettings: React.FC = () => {
   };
 
   const handleSaveProfile = () => {
-    console.log('Profile saved:', profile);
   };
 
   const handleChangePassword = () => {
-    console.log('Password change:', passwords);
   };
 
   return (
@@ -84,7 +75,6 @@ const ProfileSettings: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Info Section */}
           <View style={styles['profile__section-header']}>
             <Text style={styles['profile__section-title']}>INFORMATIONS PERSONNELLES</Text>
           </View>
